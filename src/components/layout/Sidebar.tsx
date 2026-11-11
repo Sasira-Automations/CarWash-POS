@@ -1,5 +1,5 @@
-import React from 'react';
-import { Droplets } from 'lucide-react';
+import React, { useState } from 'react';
+import { Droplets, Wallet, Settings, LogOut, CircleUserRound } from 'lucide-react';
 import { useWashFlow } from '../../context/WashFlowContext';
 
 interface SidebarProps {
@@ -46,28 +46,15 @@ const ReportsBarsIcon: React.FC<{ className?: string }> = ({ className = 'w-6 h-
   </svg>
 );
 
-const LogOutIcon: React.FC<{ className?: string }> = ({ className = 'w-6 h-6' }) => (
-  <svg
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2.4"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    className={className}
-  >
-    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-    <polyline points="16 17 21 12 16 7" />
-    <line x1="21" y1="12" x2="9" y2="12" />
-  </svg>
-);
-
 export const Sidebar: React.FC<SidebarProps> = ({ mobileOpen, setMobileOpen }) => {
   const { activeTab, setActiveTab, showToast } = useWashFlow();
+  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
 
-  const handleLogout = () => {
-    showToast('Signed out');
+  const endDemoSession = () => {
     setActiveTab('dashboard');
+    setProfileMenuOpen(false);
+    setMobileOpen(false);
+    showToast('Demo session ended');
   };
 
   const navItems = [
@@ -114,18 +101,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileOpen, setMobileOpen }) =
       onClick: () => setActiveTab('analytics')
     },
     {
-      id: 'settings',
-      label: 'Settings',
-      icon: ServicesGearIcon,
-      isActive: activeTab === 'settings' || activeTab === 'cameras' || activeTab === 'help',
-      onClick: () => setActiveTab('settings')
-    },
-    {
-      id: 'logout',
-      label: 'Log Out',
-      icon: LogOutIcon,
-      isActive: false,
-      onClick: handleLogout
+      id: 'expenses',
+      label: 'Expenses',
+      icon: Wallet,
+      isActive: activeTab === 'expenses',
+      onClick: () => setActiveTab('expenses')
     }
   ];
 
@@ -186,8 +166,45 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileOpen, setMobileOpen }) =
             </nav>
           </div>
 
-          <div className="mt-auto px-6 pb-5 pt-4 text-[10px] font-semibold uppercase tracking-wide text-slate-400">
-            Car wash operations
+          <div className="relative mt-auto flex items-center px-5 pb-5 pt-4">
+            <button
+              type="button"
+              onClick={() => setProfileMenuOpen((open) => !open)}
+              aria-label="Open profile menu"
+              aria-expanded={profileMenuOpen}
+              title="Profile and account settings"
+              className="flex h-14 w-14 items-center justify-center rounded-full border-2 border-[#b8d3f0] bg-[#eaf3ff] text-[#1b5fad] shadow-[0_4px_12px_rgba(27,95,173,0.16)] transition hover:bg-blue-100 hover:shadow-[0_6px_16px_rgba(27,95,173,0.22)] focus:outline-none focus:ring-4 focus:ring-blue-500/20"
+            >
+              <CircleUserRound className="h-7 w-7" strokeWidth={1.8} />
+            </button>
+            {profileMenuOpen && (
+              <div className="absolute bottom-[calc(100%-8px)] left-3 z-20 w-56 rounded-lg border border-slate-200 bg-white p-2 shadow-[0_12px_30px_rgba(24,50,82,0.18)]">
+                <div className="border-b border-slate-100 px-3 py-2">
+                  <div className="text-xs font-bold text-slate-900">Staff account</div>
+                  <div className="mt-0.5 text-[10px] text-slate-500">Wash attendant</div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setActiveTab('settings');
+                    setProfileMenuOpen(false);
+                    setMobileOpen(false);
+                  }}
+                  className="mt-1 flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-slate-50"
+                >
+                  <Settings className="h-4 w-4 text-slate-500" />
+                  Settings
+                </button>
+                <button
+                  type="button"
+                  onClick={endDemoSession}
+                  className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-xs font-semibold text-rose-700 hover:bg-rose-50"
+                >
+                  <LogOut className="h-4 w-4" />
+                  Log out
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </aside>

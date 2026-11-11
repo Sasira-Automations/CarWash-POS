@@ -11,6 +11,7 @@ import { CustomersView } from './components/customers/CustomersView';
 import { AnalyticsView } from './components/analytics/AnalyticsView';
 import { CamerasView } from './components/cameras/CamerasView';
 import { SettingsView } from './components/settings/SettingsView';
+import { ExpensesView } from './components/expenses/ExpensesView';
 import { ReceiptModal } from './components/modals/ReceiptModal';
 import { CheckCircle2 } from 'lucide-react';
 
@@ -46,6 +47,7 @@ const WashFlowMainApp: React.FC = () => {
           {activeTab === 'services' && <ServicesView />}
           {activeTab === 'customers' && <CustomersView />}
           {activeTab === 'analytics' && <AnalyticsView />}
+          {activeTab === 'expenses' && <ExpensesView />}
           {activeTab === 'cameras' && <CamerasView />}
           {activeTab === 'settings' && <SettingsView />}
         </main>

@@ -9,7 +9,8 @@ import {
   BusinessSettings,
   PaymentMethod,
   CartItem,
-  WashBay
+  WashBay,
+  ExpenseRecord
 } from '../types';
 
 interface WashFlowContextType {
@@ -62,6 +63,10 @@ interface WashFlowContextType {
 
   // Customers
   customers: Customer[];
+
+  // Expenses
+  expenses: ExpenseRecord[];
+  addExpense: (expense: Omit<ExpenseRecord, 'id'>) => void;
 
   // Settings
   settings: BusinessSettings;
@@ -468,6 +473,7 @@ export const WashFlowProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const [services, setServices] = useState<ServiceItem[]>(initialServices);
   const [cameras, setCameras] = useState<CameraDevice[]>(initialCameras);
   const [customers] = useState<Customer[]>(initialCustomers);
+  const [expenses, setExpenses] = useState<ExpenseRecord[]>([]);
   const [settings, setSettings] = useState<BusinessSettings>(initialSettings);
 
   // POS temporary state
@@ -696,6 +702,11 @@ export const WashFlowProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     );
   };
 
+  const addExpense = (expense: Omit<ExpenseRecord, 'id'>) => {
+    setExpenses((prev) => [{ ...expense, id: `expense-${Date.now()}` }, ...prev]);
+    showToast('Expense recorded');
+  };
+
   const updateSettings = (newSettings: Partial<BusinessSettings>) => {
     setSettings((prev) => ({ ...prev, ...newSettings }));
     showToast('Settings updated successfully');
@@ -770,6 +781,8 @@ export const WashFlowProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         cameras,
         toggleCameraStatus,
         customers,
+        expenses,
+        addExpense,
         settings,
         updateSettings,
         toastMessage,

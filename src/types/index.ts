@@ -6,6 +6,7 @@ export type ActiveTab =
   | 'services'
   | 'customers'
   | 'analytics'
+  | 'expenses'
   | 'cameras'
   | 'settings'
   | 'help';
@@ -13,6 +14,15 @@ export type ActiveTab =
 export type PaymentMethod = 'M-Pesa' | 'Cash' | 'Card';
 
 export type TransactionStatus = 'Completed' | 'Pending' | 'Refunded' | 'Cancelled';
+
+export interface ExpenseRecord {
+  id: string;
+  description: string;
+  category: 'Supplies' | 'Utilities' | 'Maintenance' | 'Payroll' | 'Rent' | 'Other';
+  amount: number;
+  date: string;
+  paymentMethod: 'Cash' | 'M-Pesa' | 'Card';
+}
 
 export interface WashBay {
   id: string;

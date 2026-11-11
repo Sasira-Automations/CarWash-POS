@@ -4,7 +4,6 @@ import {
   MapPin,
   Search,
   Bell,
-  ChevronDown,
   Plus
 } from 'lucide-react';
 import { useWashFlow } from '../../context/WashFlowContext';
@@ -45,14 +44,13 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({ onMenuToggle }) => {
             <Menu className="w-5 h-5" />
           </button>
 
-          <div className="flex items-center gap-2 cursor-pointer group">
+          <div className="flex items-center gap-2 group">
             <div className="w-8 h-8 rounded-xl bg-slate-100 flex items-center justify-center text-slate-600 group-hover:bg-slate-200 transition-colors">
               <MapPin className="w-4 h-4" />
             </div>
             <div>
               <div className="flex items-center gap-1 text-xs font-bold text-slate-900 leading-tight">
                 <span>{settings.businessName}</span>
-                <ChevronDown className="w-3.5 h-3.5 text-slate-400 group-hover:text-slate-600" />
               </div>
               <div className="text-[11px] text-slate-400">{settings.branch} · {settings.location}</div>
             </div>
@@ -127,15 +125,6 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({ onMenuToggle }) => {
                 </div>
               </div>
             )}
-          </div>
-
-          {/* Attendant Profile */}
-          <div className="hidden md:flex items-center gap-2 pl-1 border-l border-slate-200/80 cursor-pointer">
-            <div className="text-right">
-              <div className="text-xs font-bold text-slate-900 leading-tight">Staff account</div>
-              <div className="text-[10px] text-slate-400">Wash attendant</div>
-            </div>
-            <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
           </div>
 
           {/* + New Sale Primary CTA */}
