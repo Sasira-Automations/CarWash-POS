@@ -73,7 +73,7 @@ export const POSView: React.FC = () => {
   return (
     <div className="space-y-6 animate-in fade-in duration-200">
       {/* Top Header & Quick Entrance Vehicle Selection */}
-      <div className="bg-white border border-slate-200/90 rounded-3xl p-5 shadow-sm">
+      <div className="bg-[#eaf3ff] border border-[#cfe0f4] rounded-xl p-5 shadow-[0_6px_20px_rgba(32,64,100,0.06)]">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-2">
@@ -83,13 +83,13 @@ export const POSView: React.FC = () => {
               </h2>
             </div>
             <p className="text-xs text-slate-500 mt-0.5">
-              Rapid checkout for attendants. Select vehicle plate, pick services, and record payment.
+                Start with a vehicle, add services, then take payment.
             </p>
           </div>
 
           {/* Quick-Pick from Entrance Camera */}
           {recentEntrancePlates.length > 0 && (
-            <div className="flex flex-wrap items-center gap-2 bg-blue-50/70 border border-blue-200/70 p-2.5 rounded-2xl">
+            <div className="flex flex-wrap items-center gap-2 bg-white/80 border border-[#cfe0f4] p-2 rounded-lg">
               <span className="text-[11px] font-bold text-blue-900 flex items-center gap-1">
                 <Zap className="w-3.5 h-3.5 text-blue-600" />
                 Quick Pick (Entrance Cam):
@@ -101,7 +101,7 @@ export const POSView: React.FC = () => {
                     setPosPlateInput(det.plateNumber);
                     showToast(`Loaded ${det.plateNumber} from camera`);
                   }}
-                  className={`px-2.5 py-1 rounded-xl text-xs font-mono font-bold transition-all ${
+                  className={`px-2.5 py-1.5 rounded-md text-xs font-mono font-bold transition-all ${
                     posPlateInput === det.plateNumber
                       ? 'bg-blue-600 text-white shadow-sm'
                       : 'bg-white text-slate-800 border border-slate-300 hover:border-blue-400'
@@ -119,9 +119,9 @@ export const POSView: React.FC = () => {
       {/* Main Layout: 2 Columns (Services Grid + Checkout Cart Panel) */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* Left Column: Vehicle Plate Input + Category Pills + Services Catalog (7 or 8 Cols) */}
-        <div className="lg:col-span-7 xl:col-span-8 space-y-5">
+        <div className="lg:col-span-7 xl:col-span-8 space-y-4">
           {/* Vehicle Input & Customer Phone Bar */}
-          <div className="bg-white rounded-3xl p-5 border border-slate-200/90 shadow-sm grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="bg-white rounded-xl p-5 border border-[#dfe7f1] shadow-[0_6px_20px_rgba(32,64,100,0.05)] grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
                 Vehicle Registration Plate *
@@ -133,7 +133,7 @@ export const POSView: React.FC = () => {
                   value={posPlateInput}
                   onChange={(e) => setPosPlateInput(e.target.value.toUpperCase())}
                   placeholder="e.g. KDA 482B or KBZ 119C"
-                  className="w-full pl-11 pr-4 py-3 bg-slate-50 hover:bg-slate-100/60 focus:bg-white border border-slate-300 focus:border-blue-600 rounded-2xl text-base font-mono font-extrabold text-slate-900 tracking-wider placeholder:text-slate-400 placeholder:font-normal focus:outline-none focus:ring-4 focus:ring-blue-500/10 transition-all uppercase"
+                  className="w-full pl-11 pr-4 py-3 bg-slate-50 hover:bg-slate-100/60 focus:bg-white border border-slate-300 focus:border-blue-600 rounded-lg text-base font-mono font-extrabold text-slate-900 tracking-wider placeholder:text-slate-400 placeholder:font-normal focus:outline-none focus:ring-4 focus:ring-blue-500/10 transition-all uppercase"
                 />
               </div>
             </div>
@@ -149,22 +149,22 @@ export const POSView: React.FC = () => {
                   value={posCustomerPhone}
                   onChange={(e) => setPosCustomerPhone(e.target.value)}
                   placeholder="e.g. 0712 345 678"
-                  className="w-full pl-11 pr-4 py-3 bg-slate-50 hover:bg-slate-100/60 focus:bg-white border border-slate-300 focus:border-blue-600 rounded-2xl text-sm font-semibold text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-4 focus:ring-blue-500/10 transition-all"
+                  className="w-full pl-11 pr-4 py-3 bg-slate-50 hover:bg-slate-100/60 focus:bg-white border border-slate-300 focus:border-blue-600 rounded-lg text-sm font-semibold text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-4 focus:ring-blue-500/10 transition-all"
                 />
               </div>
             </div>
           </div>
 
           {/* Category Tabs */}
-          <div className="flex items-center gap-2 overflow-x-auto pb-1">
+          <div className="inline-flex max-w-full items-center gap-1 overflow-x-auto rounded-lg border border-[#dfe7f1] bg-white p-1 shadow-[0_3px_12px_rgba(32,64,100,0.04)]">
             {categories.map((cat) => (
               <button
                 key={cat}
                 onClick={() => setSelectedCategory(cat)}
-                className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
+                  className={`px-4 py-2 rounded-md text-xs font-bold whitespace-nowrap transition-all ${
                   selectedCategory === cat
                     ? 'bg-blue-600 text-white shadow-md shadow-blue-600/25'
-                    : 'bg-white text-slate-600 border border-slate-200/90 hover:bg-slate-50'
+                    : 'text-slate-600 hover:bg-slate-100'
                 }`}
               >
                 {cat}
@@ -173,7 +173,7 @@ export const POSView: React.FC = () => {
           </div>
 
           {/* Service Cards Grid (Large, Touch-Friendly) */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3.5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
             {filteredServices.map((service) => {
               const inCart = cart.find((i) => i.service.id === service.id);
               return (
@@ -182,14 +182,14 @@ export const POSView: React.FC = () => {
                   onClick={() => addToCart(service)}
                   role="button"
                   tabIndex={0}
-                  className={`p-4 rounded-3xl border text-left transition-all duration-200 cursor-pointer select-none group relative flex flex-col justify-between ${
+                  className={`min-h-[190px] p-4 rounded-xl border text-left transition-all duration-200 cursor-pointer select-none group relative flex flex-col justify-between ${
                     inCart
-                      ? 'bg-blue-50/70 border-blue-400 shadow-sm'
-                      : 'bg-white border-slate-200/90 hover:border-blue-300 hover:shadow-md'
+                      ? 'bg-[#eaf3ff] border-blue-400 shadow-[0_6px_18px_rgba(32,90,160,0.10)]'
+                      : 'bg-white border-[#dfe7f1] hover:border-blue-300 hover:shadow-[0_8px_22px_rgba(32,90,160,0.09)]'
                   }`}
                 >
                   {service.popular && (
-                    <span className="absolute top-3 right-3 text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-200 flex items-center gap-0.5">
+                    <span className="absolute top-3 right-3 text-[10px] font-bold px-2 py-0.5 rounded-md bg-amber-100 text-amber-800 border border-amber-200 flex items-center gap-0.5">
                       <Sparkles className="w-3 h-3 text-amber-600" /> Popular
                     </span>
                   )}
@@ -206,7 +206,7 @@ export const POSView: React.FC = () => {
                     </p>
                   </div>
 
-                  <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between">
+                  <div className="mt-4 pt-3 border-t border-slate-200/80 flex items-center justify-between">
                     <div>
                       <span className="text-[10px] text-slate-400 block font-medium">Price</span>
                       <span className="text-lg font-extrabold text-slate-900">
@@ -236,7 +236,7 @@ export const POSView: React.FC = () => {
         </div>
 
         {/* Right Column: Checkout Cart Summary Panel (4 or 5 Cols) */}
-        <div className="lg:col-span-5 xl:col-span-4 bg-white rounded-3xl p-6 border border-slate-200/90 shadow-lg space-y-5 sticky top-20">
+        <div className="lg:col-span-5 xl:col-span-4 bg-white rounded-xl p-5 border border-[#d5e5f5] shadow-[0_10px_28px_rgba(32,64,100,0.09)] space-y-4 lg:sticky lg:top-20">
           <div className="flex items-center justify-between pb-3 border-b border-slate-100">
             <div className="flex items-center gap-2">
               <ShoppingCart className="w-5 h-5 text-blue-600" />
@@ -267,7 +267,7 @@ export const POSView: React.FC = () => {
               cart.map((item) => (
                 <div
                   key={item.service.id}
-                  className="p-3 bg-slate-50/80 rounded-2xl border border-slate-200/70 flex items-center justify-between gap-2"
+                  className="p-3 bg-[#f7faff] rounded-lg border border-[#e4ebf4] flex items-center justify-between gap-2"
                 >
                   <div className="min-w-0 flex-1">
                     <h4 className="text-xs font-bold text-slate-900 truncate">
@@ -279,7 +279,7 @@ export const POSView: React.FC = () => {
                   </div>
 
                   {/* Quantity controls */}
-                  <div className="flex items-center gap-1 bg-white border border-slate-200 rounded-xl p-0.5">
+                  <div className="flex items-center gap-1 bg-white border border-slate-200 rounded-md p-0.5">
                     <button
                       onClick={() => updateCartQuantity(item.service.id, -1)}
                       className="w-6 h-6 rounded-lg text-slate-600 hover:bg-slate-100 flex items-center justify-center"
@@ -382,7 +382,7 @@ export const POSView: React.FC = () => {
 
             {/* Cash Tendered & Change calculator */}
             {posPaymentMethod === 'Cash' && (
-              <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 space-y-2">
+              <div className="bg-[#f7faff] border border-[#e4ebf4] rounded-lg p-3 space-y-2">
                 <div className="flex items-center justify-between text-xs">
                   <span className="text-slate-600 font-semibold">Cash Tendered:</span>
                   <input
@@ -421,9 +421,9 @@ export const POSView: React.FC = () => {
               </div>
             )}
 
-            <div className="flex justify-between text-lg font-extrabold text-slate-900 pt-2 border-t border-slate-200">
-              <span>Total Payable:</span>
-              <span className="text-blue-600 font-mono">
+            <div className="flex justify-between items-center text-lg font-extrabold text-slate-900 mt-2 px-3 py-3 rounded-lg bg-[#eaf3ff] border border-[#cfe0f4]">
+              <span>Total due</span>
+              <span className="text-[#1b5fad] font-mono">
                 {settings.currency} {total.toLocaleString()}
               </span>
             </div>
@@ -433,7 +433,7 @@ export const POSView: React.FC = () => {
           <button
             onClick={handleCheckout}
             disabled={cart.length === 0}
-            className={`w-full py-4 rounded-2xl text-sm font-extrabold text-white flex items-center justify-center gap-2 shadow-lg transition-all ${
+            className={`w-full py-3.5 rounded-lg text-sm font-extrabold text-white flex items-center justify-center gap-2 shadow-md transition-all ${
               cart.length === 0
                 ? 'bg-slate-300 cursor-not-allowed shadow-none'
                 : 'bg-blue-600 hover:bg-blue-700 shadow-blue-600/30 active:scale-[0.99]'
