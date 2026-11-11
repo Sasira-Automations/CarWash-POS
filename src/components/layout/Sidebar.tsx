@@ -1,4 +1,5 @@
 import React from 'react';
+import { Droplets } from 'lucide-react';
 import { useWashFlow } from '../../context/WashFlowContext';
 
 interface SidebarProps {
@@ -65,7 +66,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileOpen, setMobileOpen }) =
   const { activeTab, setActiveTab, showToast } = useWashFlow();
 
   const handleLogout = () => {
-    showToast('Logged out of SparkleWash');
+    showToast('Signed out');
     setActiveTab('dashboard');
   };
 
@@ -148,12 +149,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileOpen, setMobileOpen }) =
         <div className="bg-white rounded-[26px] h-full min-h-0 flex flex-col justify-between overflow-hidden shadow-[12px_0_35px_-8px_rgba(25,93,228,0.2)] relative border border-white/50">
           <div>
             {/* Top Logo with Splash & Tagline */}
-            <div className="sidebar-logo px-2 flex justify-center">
-              <img
-                src="/images/sidebar-logo.png"
-                alt="SparkleWash - Clean Drive, Happy You"
-                className="sidebar-logo-image w-full max-w-[190px] object-contain select-none pointer-events-none"
-              />
+            <div className="sidebar-logo px-4 flex items-center justify-center gap-2.5 text-[#17365f]">
+              <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#eaf3ff] text-[#1b5fad]">
+                <Droplets className="h-5 w-5" />
+              </span>
+              <span className="text-lg font-extrabold tracking-tight">WashFlow</span>
             </div>
 
             {/* Navigation List */}
@@ -186,13 +186,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileOpen, setMobileOpen }) =
             </nav>
           </div>
 
-          {/* Bottom Water Splash & Blue Sedan Car Graphic */}
-          <div className="sidebar-bottom-art mt-auto w-full select-none pointer-events-none overflow-hidden rounded-b-[26px] shrink-0">
-            <img
-              src="/images/sidebar-bottom-car.png"
-              alt="SparkleWash Car Wash"
-              className="sidebar-bottom-image w-full object-contain object-bottom block"
-            />
+          <div className="mt-auto px-6 pb-5 pt-4 text-[10px] font-semibold uppercase tracking-wide text-slate-400">
+            Car wash operations
           </div>
         </div>
       </aside>

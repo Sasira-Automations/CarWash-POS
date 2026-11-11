@@ -67,14 +67,14 @@ export const VehicleMonitoringView: React.FC = () => {
           <div className="flex items-center gap-2 mb-1">
             <span className="w-2.5 h-2.5 rounded-full bg-blue-600 animate-pulse"></span>
             <span className="text-xs font-bold text-blue-700 bg-blue-50 px-2.5 py-0.5 rounded-full border border-blue-200">
-              YOLOv8 Edge ANPR • Automatic Number Plate Recognition
+              Sample vehicle data • Camera integration pending
             </span>
           </div>
           <h2 className="text-xl font-extrabold text-slate-900 tracking-tight">
             Camera-Based Vehicle Monitoring
           </h2>
           <p className="text-xs text-slate-500 mt-1 max-w-2xl">
-            Live vehicle ingress detection at Entrance Gate 1. Ingress records track traffic volume and provide plate recognition for instant POS linkage without double-counting.
+            This screen currently uses sample entries. After the camera and number-plate recognition hardware is tested and verified, its vehicle events can be connected here and linked to staff-recorded services.
           </p>
         </div>
 
@@ -83,7 +83,7 @@ export const VehicleMonitoringView: React.FC = () => {
           className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white shadow-md shadow-blue-600/30 transition-all hover:scale-[1.02] shrink-0"
         >
           <RotateCw className="w-4 h-4" />
-          <span>Simulate Vehicle Entry</span>
+          <span>Add Sample Vehicle Entry</span>
         </button>
       </div>
 

@@ -51,10 +51,10 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({ onMenuToggle }) => {
             </div>
             <div>
               <div className="flex items-center gap-1 text-xs font-bold text-slate-900 leading-tight">
-                <span>{settings.branch}</span>
+                <span>{settings.businessName}</span>
                 <ChevronDown className="w-3.5 h-3.5 text-slate-400 group-hover:text-slate-600" />
               </div>
-              <div className="text-[11px] text-slate-400">{settings.location}</div>
+              <div className="text-[11px] text-slate-400">{settings.branch} · {settings.location}</div>
             </div>
           </div>
         </div>
@@ -79,10 +79,10 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({ onMenuToggle }) => {
 
         {/* Right Section: IoT Status + Bell + Profile + New Sale Button */}
         <div className="flex items-center gap-3">
-          {/* IoT Status Pill */}
-          <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200/80 text-xs font-semibold">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-            <span>IoT system online</span>
+          {/* Camera integration is intentionally simulated until hardware is verified. */}
+          <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-amber-50 text-amber-800 border border-amber-200 text-xs font-semibold">
+            <span className="w-2 h-2 rounded-full bg-amber-500" />
+            <span>Demo data · IoT pending</span>
           </div>
 
           {/* Bell Notifications */}
@@ -132,8 +132,8 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({ onMenuToggle }) => {
           {/* Attendant Profile */}
           <div className="hidden md:flex items-center gap-2 pl-1 border-l border-slate-200/80 cursor-pointer">
             <div className="text-right">
-              <div className="text-xs font-bold text-slate-900 leading-tight">Kelvin W.</div>
-              <div className="text-[10px] text-slate-400">Shift supervisor</div>
+              <div className="text-xs font-bold text-slate-900 leading-tight">Staff account</div>
+              <div className="text-[10px] text-slate-400">Wash attendant</div>
             </div>
             <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
           </div>

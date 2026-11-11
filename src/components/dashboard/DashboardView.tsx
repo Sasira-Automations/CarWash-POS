@@ -49,13 +49,13 @@ export const DashboardView: React.FC = () => {
           <div>
             <div className="mb-2 flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.16em] text-cyan-200">
               <Droplets className="h-3.5 w-3.5" />
-              WashFlow / Live operations
+              WashFlow / Operations
             </div>
             <h1 className="max-w-2xl text-2xl font-extrabold leading-tight sm:text-3xl">
               A smoother shift starts here.
             </h1>
             <p className="mt-2 text-sm text-slate-200">
-              {settings.branch} <span className="mx-1.5 text-slate-500">/</span> Every arrival, bay and payment in one view.
+              {settings.branch} <span className="mx-1.5 text-slate-500">/</span> Your arrivals, bays and recorded payments in one view.
             </p>
           </div>
 
@@ -257,12 +257,12 @@ export const DashboardView: React.FC = () => {
             <div className="flex items-center justify-between mb-3">
               <div>
                 <h2 className="text-base font-bold text-slate-900">Live arrivals</h2>
-                <p className="text-xs text-slate-500">Entrance camera • ANPR detection</p>
+                <p className="text-xs text-slate-500">Sample entries · camera integration pending</p>
               </div>
 
               <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-xs font-semibold">
                 <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                <span>Live</span>
+                <span>Demo</span>
               </div>
             </div>
 

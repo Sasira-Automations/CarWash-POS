@@ -328,7 +328,7 @@ const initialTransactions: Transaction[] = [
     paymentMethod: 'M-Pesa',
     status: 'Completed',
     timestamp: '15:38',
-    attendantName: 'Kelvin W.',
+    attendantName: 'Sample attendant',
     mpesaRef: 'RJG82K9L2P'
   },
   {
@@ -347,7 +347,7 @@ const initialTransactions: Transaction[] = [
     paymentMethod: 'Cash',
     status: 'Completed',
     timestamp: '15:31',
-    attendantName: 'Kelvin W.'
+    attendantName: 'Sample attendant'
   },
   {
     id: 'tx-1041',
@@ -365,7 +365,7 @@ const initialTransactions: Transaction[] = [
     paymentMethod: 'M-Pesa',
     status: 'Completed',
     timestamp: '15:24',
-    attendantName: 'Kelvin W.',
+    attendantName: 'Sample attendant',
     mpesaRef: 'RJG71M3X99'
   },
   {
@@ -384,7 +384,7 @@ const initialTransactions: Transaction[] = [
     paymentMethod: 'Card',
     status: 'Completed',
     timestamp: '15:17',
-    attendantName: 'Kelvin W.'
+    attendantName: 'Sample attendant'
   },
   {
     id: 'tx-1039',
@@ -402,7 +402,7 @@ const initialTransactions: Transaction[] = [
     paymentMethod: 'M-Pesa',
     status: 'Completed',
     timestamp: '15:09',
-    attendantName: 'Kelvin W.',
+    attendantName: 'Sample attendant',
     mpesaRef: 'RJG50P881B'
   }
 ];
@@ -444,15 +444,15 @@ const initialCustomers: Customer[] = [
 ];
 
 const initialSettings: BusinessSettings = {
-  businessName: 'WashFlow Smart Car Wash POS',
-  branch: 'Westlands Flagship',
-  phone: '+254 700 123 456',
-  email: 'service@washflow.co.ke',
-  location: 'Nairobi, Kenya',
+  businessName: 'Your Car Wash',
+  branch: 'Main Branch',
+  phone: '',
+  email: '',
+  location: 'Add your location',
   currency: 'KSh',
-  mpesaTillNumber: '523910',
-  receiptHeader: 'WashFlow Smart Car Wash POS\nWestlands Flagship, Nairobi, Kenya',
-  receiptFooter: 'Thank you for choosing WashFlow!\nKeep your ride shining.',
+  mpesaTillNumber: '',
+  receiptHeader: 'Your Car Wash\nAdd your business details in Settings',
+  receiptFooter: 'Thank you for visiting.',
   duplicateCooldownSeconds: 900,
   minConfidenceThreshold: 80,
   autoLinkDetections: true
@@ -620,7 +620,7 @@ export const WashFlowProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       paymentMethod: posPaymentMethod,
       status: 'Completed',
       timestamp: timeStr,
-      attendantName: 'Kelvin W.',
+      attendantName: 'Sample attendant',
       mpesaRef: posPaymentMethod === 'M-Pesa' ? `RJG${Math.random().toString(36).substring(2, 8).toUpperCase()}` : undefined
     };
 
