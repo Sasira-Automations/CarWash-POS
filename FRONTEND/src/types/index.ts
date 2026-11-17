@@ -1,6 +1,5 @@
 export type ActiveTab =
   | 'dashboard'
-  | 'pos'
   | 'monitoring'
   | 'transactions'
   | 'services'
@@ -44,11 +43,6 @@ export interface ServiceItem {
   active: boolean;
   description: string;
   popular?: boolean;
-}
-
-export interface CartItem {
-  service: ServiceItem;
-  quantity: number;
 }
 
 export interface Transaction {

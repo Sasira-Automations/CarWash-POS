@@ -8,7 +8,6 @@ import {
   Check,
   X,
   Search,
-  ArrowUpRight,
   Sparkles,
   Camera,
   Info
@@ -21,7 +20,6 @@ export const VehicleMonitoringView: React.FC = () => {
     detections,
     correctPlateNumber,
     triggerManualCameraDetection,
-    quickChargePlateInPOS,
     stats
   } = useWashFlow();
 
@@ -200,7 +198,6 @@ export const VehicleMonitoringView: React.FC = () => {
                 <th className="pb-3">ANPR Confidence</th>
                 <th className="pb-3">Status</th>
                 <th className="pb-3">POS Link</th>
-                <th className="pb-3 text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -330,17 +327,6 @@ export const VehicleMonitoringView: React.FC = () => {
                       )}
                     </td>
 
-                    <td className="py-3.5 text-right">
-                      {!isPaid && !det.isDuplicate && (
-                        <button
-                          onClick={() => quickChargePlateInPOS(det.plateNumber)}
-                          className="px-3 py-1 rounded-xl text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white shadow-xs transition-colors inline-flex items-center gap-1"
-                        >
-                          <span>Charge in POS</span>
-                          <ArrowUpRight className="w-3.5 h-3.5" />
-                        </button>
-                      )}
-                    </td>
                   </tr>
                 );
               })}

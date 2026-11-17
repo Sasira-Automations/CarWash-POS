@@ -3,13 +3,12 @@ import {
   Users,
   Search,
   Phone,
-  Award,
-  ArrowUpRight
+  Award
 } from 'lucide-react';
 import { useWashFlow } from '../../context/WashFlowContext';
 
 export const CustomersView: React.FC = () => {
-  const { customers, settings, quickChargePlateInPOS } = useWashFlow();
+  const { customers, settings } = useWashFlow();
   const [searchQuery, setSearchQuery] = useState('');
 
   const filtered = customers.filter((c) => {
@@ -107,13 +106,6 @@ export const CustomersView: React.FC = () => {
                 </span>
               </div>
 
-              <button
-                onClick={() => quickChargePlateInPOS(customer.plateNumber)}
-                className="px-3 py-1.5 rounded-xl text-xs font-bold bg-blue-50 hover:bg-blue-600 text-blue-700 hover:text-white transition-all flex items-center gap-1"
-              >
-                <span>Charge</span>
-                <ArrowUpRight className="w-3.5 h-3.5" />
-              </button>
             </div>
           </div>
         ))}

@@ -13,11 +13,9 @@ import { useWashFlow } from '../../context/WashFlowContext';
 export const DashboardView: React.FC = () => {
   const {
     washBays,
-    checkoutBay,
     detections,
     transactions,
     setActiveTab,
-    quickChargePlateInPOS,
     setSelectedReceipt,
     settings,
     stats
@@ -162,7 +160,7 @@ export const DashboardView: React.FC = () => {
                   Live wash floor
                 </h2>
                 <p className="text-xs text-slate-600 mt-0.5">
-                  {washingBays} washing · {readyBays} ready for checkout
+                  {washingBays} washing · {readyBays} ready for pickup
                 </p>
               </div>
 
@@ -220,15 +218,12 @@ export const DashboardView: React.FC = () => {
                       </div>
                     </div>
 
-                    {/* Bottom Progress or Checkout Button */}
+                    {/* Bay progress and readiness */}
                     <div className="mt-4 pt-2">
                       {isReady ? (
-                        <button
-                          onClick={() => checkoutBay(bay.id)}
-                          className="w-full py-2 bg-[#86efac] hover:bg-[#6ee7b7] text-slate-900 font-extrabold text-xs rounded-xl transition-all shadow-xs flex items-center justify-center gap-1 active:scale-95"
-                        >
-                          <span>Checkout →</span>
-                        </button>
+                        <div className="w-full py-2 text-center text-emerald-700 font-bold text-xs">
+                          Ready for pickup
+                        </div>
                       ) : (
                         <div>
                           <div className="w-full bg-[#d7e5f4] h-1 rounded-full overflow-hidden mb-2">
@@ -266,9 +261,9 @@ export const DashboardView: React.FC = () => {
               </div>
             </div>
 
-            {/* Waiting for sale alert banner */}
+            {/* Arrivals without a linked transaction */}
             <div className="bg-[#fffbeb] border border-[#fef3c7] text-[#92400e] text-xs font-medium px-3.5 py-2.5 rounded-xl mb-4">
-              {waitingArrivals.length} {waitingArrivals.length === 1 ? 'vehicle is' : 'vehicles are'} waiting for a sale
+              {waitingArrivals.length} {waitingArrivals.length === 1 ? 'arrival has' : 'arrivals have'} no linked transaction
             </div>
 
             {/* Arrivals List */}
@@ -293,17 +288,11 @@ export const DashboardView: React.FC = () => {
                       </div>
                     </div>
 
-                    <button
-                      onClick={() => quickChargePlateInPOS(det.plateNumber)}
-                      className="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-xs transition-all active:scale-95"
-                    >
-                      Create sale →
-                    </button>
                   </div>
                 </div>
               ))}
               {waitingArrivals.length === 0 && (
-                <p className="py-5 text-center text-xs text-slate-400">No vehicles waiting for a sale.</p>
+                <p className="py-5 text-center text-xs text-slate-400">No recent arrivals.</p>
               )}
             </div>
           </div>

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Droplets, Wallet, Settings, LogOut, CircleUserRound } from 'lucide-react';
+import { CarFront, Droplets, Wallet, Settings, LogOut, CircleUserRound } from 'lucide-react';
 import { useWashFlow } from '../../context/WashFlowContext';
 
 interface SidebarProps {
@@ -11,12 +11,6 @@ interface SidebarProps {
 const HomeIcon: React.FC<{ className?: string }> = ({ className = 'w-6 h-6' }) => (
   <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
     <path d="M12 2.7L2.5 11h2.5v9.3a1 1 0 001 1h4a1 1 0 001-1v-5h2v5a1 1 0 001 1h4a1 1 0 001-1V11h2.5L12 2.7z" />
-  </svg>
-);
-
-const CarPlusIcon: React.FC<{ className?: string }> = ({ className = 'w-6 h-6' }) => (
-  <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
-    <path d="M16.5 6.5c-.38-.47-.94-.75-1.55-.75H5.85c-.69 0-1.3.36-1.65.93L2.2 10.1C2.07 10.32 2 10.58 2 10.85V15.5c0 .83.67 1.5 1.5 1.5h.7c.38 1.16 1.48 2 2.8 2s2.42-.84 2.8-2h3.45c-.16-.48-.25-.98-.25-1.5 0-1.28.51-2.45 1.34-3.3l-1.34-1.2h-7l1.2-2.5h6.3l1 2.05c.65-.22 1.35-.35 2.08-.35.49 0 .97.06 1.42.17l-1-2.37zM7 17.5c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1zm12.5-3.5v2.5H17v2h2.5V21h2v-2.5H24v-2h-2.5V14h-2z" />
   </svg>
 );
 
@@ -66,11 +60,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileOpen, setMobileOpen }) =
       onClick: () => setActiveTab('dashboard')
     },
     {
-      id: 'pos',
-      label: 'New Wash',
-      icon: CarPlusIcon,
-      isActive: activeTab === 'pos' || activeTab === 'monitoring',
-      onClick: () => setActiveTab('pos')
+      id: 'monitoring',
+      label: 'Vehicles',
+      icon: CarFront,
+      isActive: activeTab === 'monitoring',
+      onClick: () => setActiveTab('monitoring')
     },
     {
       id: 'services',

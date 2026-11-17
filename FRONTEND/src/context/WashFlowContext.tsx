@@ -8,7 +8,6 @@ import {
   Customer,
   BusinessSettings,
   PaymentMethod,
-  CartItem,
   WashBay,
   ExpenseRecord
 } from '../types';
@@ -20,29 +19,11 @@ interface WashFlowContextType {
 
   // Wash Floor Bays
   washBays: WashBay[];
-  checkoutBay: (bayId: string) => void;
-
-  // POS State
-  cart: CartItem[];
-  addToCart: (service: ServiceItem) => void;
-  removeFromCart: (serviceId: string) => void;
-  updateCartQuantity: (serviceId: string, delta: number) => void;
-  clearCart: () => void;
-  posPlateInput: string;
-  setPosPlateInput: (plate: string) => void;
-  posCustomerPhone: string;
-  setPosCustomerPhone: (phone: string) => void;
-  posDiscount: number;
-  setPosDiscount: (discount: number) => void;
-  posPaymentMethod: PaymentMethod;
-  setPosPaymentMethod: (method: PaymentMethod) => void;
-  completeSale: () => Transaction | null;
 
   // Detections
   detections: VehicleDetection[];
   correctPlateNumber: (detectionId: string, newPlate: string) => void;
   triggerManualCameraDetection: () => void;
-  quickChargePlateInPOS: (plateNumber: string) => void;
 
   // Transactions
   transactions: Transaction[];
@@ -467,7 +448,7 @@ const WashFlowContext = createContext<WashFlowContextType | null>(null);
 
 export const WashFlowProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [activeTab, setActiveTab] = useState<ActiveTab>('dashboard');
-  const [washBays, setWashBays] = useState<WashBay[]>(initialWashBays);
+  const [washBays] = useState<WashBay[]>(initialWashBays);
   const [detections, setDetections] = useState<VehicleDetection[]>(initialDetections);
   const [transactions, setTransactions] = useState<Transaction[]>(initialTransactions);
   const [services, setServices] = useState<ServiceItem[]>(initialServices);
@@ -476,12 +457,6 @@ export const WashFlowProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const [expenses, setExpenses] = useState<ExpenseRecord[]>([]);
   const [settings, setSettings] = useState<BusinessSettings>(initialSettings);
 
-  // POS temporary state
-  const [cart, setCart] = useState<CartItem[]>([]);
-  const [posPlateInput, setPosPlateInput] = useState('');
-  const [posCustomerPhone, setPosCustomerPhone] = useState('');
-  const [posDiscount, setPosDiscount] = useState<number>(0);
-  const [posPaymentMethod, setPosPaymentMethod] = useState<PaymentMethod>('M-Pesa');
   const [selectedReceipt, setSelectedReceipt] = useState<Transaction | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
@@ -490,66 +465,6 @@ export const WashFlowProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     setTimeout(() => {
       setToastMessage((cur) => (cur === msg ? null : cur));
     }, 3500);
-  };
-
-  const checkoutBay = (bayId: string) => {
-    const bay = washBays.find((b) => b.id === bayId);
-    if (!bay) return;
-    setPosPlateInput(bay.plateNumber);
-    // Find matching service
-    const matchingSrv = services.find((s) => s.name.toLowerCase() === bay.service.toLowerCase()) || services[0];
-    setCart([{ service: matchingSrv, quantity: 1 }]);
-    setActiveTab('pos');
-    showToast(`Checked out ${bay.plateNumber} from ${bay.bayNumber} into POS`);
-  };
-
-  // Cart actions
-  const addToCart = (service: ServiceItem) => {
-    setCart((prev) => {
-      const existing = prev.find((item) => item.service.id === service.id);
-      if (existing) {
-        return prev.map((item) =>
-          item.service.id === service.id ? { ...item, quantity: item.quantity + 1 } : item
-        );
-      }
-      return [...prev, { service, quantity: 1 }];
-    });
-    showToast(`Added ${service.name} to cart`);
-  };
-
-  const removeFromCart = (serviceId: string) => {
-    setCart((prev) => prev.filter((item) => item.service.id !== serviceId));
-  };
-
-  const updateCartQuantity = (serviceId: string, delta: number) => {
-    setCart((prev) =>
-      prev
-        .map((item) => {
-          if (item.service.id === serviceId) {
-            const newQty = item.quantity + delta;
-            return newQty > 0 ? { ...item, quantity: newQty } : null;
-          }
-          return item;
-        })
-        .filter(Boolean) as CartItem[]
-    );
-  };
-
-  const clearCart = () => {
-    setCart([]);
-    setPosPlateInput('');
-    setPosCustomerPhone('');
-    setPosDiscount(0);
-  };
-
-  const quickChargePlateInPOS = (plateNumber: string) => {
-    setPosPlateInput(plateNumber);
-    // Default to exterior wash if empty
-    if (cart.length === 0 && services.length > 0) {
-      setCart([{ service: services[0], quantity: 1 }]);
-    }
-    setActiveTab('pos');
-    showToast(`Vehicle plate ${plateNumber} loaded into POS`);
   };
 
   const correctPlateNumber = (detectionId: string, newPlate: string) => {
@@ -592,68 +507,6 @@ export const WashFlowProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       )
     );
     showToast(`New vehicle arrival detected: ${plate} (Entrance camera)`);
-  };
-
-  const completeSale = (): Transaction | null => {
-    if (cart.length === 0) {
-      showToast('Cannot complete sale: Cart is empty');
-      return null;
-    }
-    const plate = posPlateInput.trim().toUpperCase() || 'WALK-IN';
-    const subtotal = cart.reduce((sum, item) => sum + item.service.price * item.quantity, 0);
-    const total = Math.max(0, subtotal - posDiscount);
-    const txIdNum = 1044 + transactions.length;
-    const txReceipt = `TXN-${txIdNum}`;
-    const now = new Date();
-    const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
-
-    const newTx: Transaction = {
-      id: `tx-${txIdNum}`,
-      receiptNumber: txReceipt,
-      vehiclePlate: plate,
-      vehicleType: 'Customer Vehicle',
-      customerName: posCustomerPhone ? `Customer (${posCustomerPhone.slice(-4)})` : 'Valued Customer',
-      customerPhone: posCustomerPhone || undefined,
-      services: cart.map((i) => ({
-        serviceId: i.service.id,
-        name: i.service.name,
-        price: i.service.price,
-        quantity: i.quantity
-      })),
-      subtotal,
-      discount: posDiscount,
-      total,
-      paymentMethod: posPaymentMethod,
-      status: 'Completed',
-      timestamp: timeStr,
-      attendantName: 'Sample attendant',
-      mpesaRef: posPaymentMethod === 'M-Pesa' ? `RJG${Math.random().toString(36).substring(2, 8).toUpperCase()}` : undefined
-    };
-
-    setTransactions((prev) => [newTx, ...prev]);
-
-    // Mark detection as no longer waiting
-    setDetections((prev) =>
-      prev.map((det) =>
-        det.plateNumber === plate
-          ? { ...det, matchedTransactionId: txReceipt, waitingForSale: false }
-          : det
-      )
-    );
-
-    // Free bay if matching
-    setWashBays((prev) =>
-      prev.map((b) =>
-        b.plateNumber === plate
-          ? { ...b, status: 'Washing', elapsedMinutes: 1, plateNumber: 'KDE 119V', vehicleName: 'New Car', service: 'Exterior wash' }
-          : b
-      )
-    );
-
-    setSelectedReceipt(newTx);
-    clearCart();
-    showToast(`Payment of ${settings.currency} ${total.toLocaleString()} recorded via ${posPaymentMethod}!`);
-    return newTx;
   };
 
   const refundTransaction = (txId: string) => {
@@ -750,25 +603,9 @@ export const WashFlowProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         activeTab,
         setActiveTab,
         washBays,
-        checkoutBay,
-        cart,
-        addToCart,
-        removeFromCart,
-        updateCartQuantity,
-        clearCart,
-        posPlateInput,
-        setPosPlateInput,
-        posCustomerPhone,
-        setPosCustomerPhone,
-        posDiscount,
-        setPosDiscount,
-        posPaymentMethod,
-        setPosPaymentMethod,
-        completeSale,
         detections,
         correctPlateNumber,
         triggerManualCameraDetection,
-        quickChargePlateInPOS,
         transactions,
         selectedReceipt,
         setSelectedReceipt,

@@ -3,7 +3,6 @@ import { WashFlowProvider, useWashFlow } from './context/WashFlowContext';
 import { Sidebar } from './components/layout/Sidebar';
 import { TopNavbar } from './components/layout/TopNavbar';
 import { DashboardView } from './components/dashboard/DashboardView';
-import { POSView } from './components/pos/POSView';
 import { VehicleMonitoringView } from './components/monitoring/VehicleMonitoringView';
 import { TransactionsView } from './components/transactions/TransactionsView';
 import { ServicesView } from './components/services/ServicesView';
@@ -41,7 +40,6 @@ const WashFlowMainApp: React.FC = () => {
 
         <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-[1600px] w-full mx-auto">
           {activeTab === 'dashboard' && <DashboardView />}
-          {activeTab === 'pos' && <POSView />}
           {activeTab === 'monitoring' && <VehicleMonitoringView />}
           {activeTab === 'transactions' && <TransactionsView />}
           {activeTab === 'services' && <ServicesView />}

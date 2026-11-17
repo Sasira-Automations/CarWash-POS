@@ -2,9 +2,7 @@ import React, { useState } from 'react';
 import {
   Menu,
   MapPin,
-  Search,
   Bell,
-  Plus
 } from 'lucide-react';
 import { useWashFlow } from '../../context/WashFlowContext';
 
@@ -15,22 +13,12 @@ interface TopNavbarProps {
 export const TopNavbar: React.FC<TopNavbarProps> = ({ onMenuToggle }) => {
   const {
     settings,
-    setActiveTab,
-    detections,
-    quickChargePlateInPOS
+    detections
   } = useWashFlow();
 
-  const [searchQuery, setSearchQuery] = useState('');
   const [showNotifications, setShowNotifications] = useState(false);
 
   const waitingArrivals = detections.filter((d) => d.waitingForSale);
-
-  const handleSearchSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!searchQuery.trim()) return;
-    quickChargePlateInPOS(searchQuery.trim().toUpperCase());
-    setSearchQuery('');
-  };
 
   return (
     <header className="sticky top-0 z-30 bg-white border-b border-slate-200/80 px-4 sm:px-8 py-3.5 transition-all">
@@ -57,25 +45,7 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({ onMenuToggle }) => {
           </div>
         </div>
 
-        {/* Center: Search Plate / Receipt (with ⌘ K) */}
-        <form
-          onSubmit={handleSearchSubmit}
-          className="flex-1 max-w-md relative hidden md:block"
-        >
-          <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search plate, receipt or customer"
-            className="w-full bg-slate-50 hover:bg-slate-100/70 focus:bg-white text-xs font-medium text-slate-900 placeholder:text-slate-400 pl-9 pr-14 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition-all"
-          />
-          <kbd className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-semibold text-slate-400 bg-white border border-slate-200 px-1.5 py-0.5 rounded shadow-2xs pointer-events-none">
-            ⌘ K
-          </kbd>
-        </form>
-
-        {/* Right Section: IoT Status + Bell + Profile + New Sale Button */}
+        {/* Right Section: IoT Status + Notifications */}
         <div className="flex items-center gap-3">
           {/* Camera integration is intentionally simulated until hardware is verified. */}
           <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-amber-50 text-amber-800 border border-amber-200 text-xs font-semibold">
@@ -111,15 +81,6 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({ onMenuToggle }) => {
                         <div className="font-mono font-bold text-slate-900">{det.plateNumber}</div>
                         <div className="text-[10px] text-slate-500">{det.vehicleType}</div>
                       </div>
-                      <button
-                        onClick={() => {
-                          quickChargePlateInPOS(det.plateNumber);
-                          setShowNotifications(false);
-                        }}
-                        className="text-[10px] font-bold text-white bg-blue-600 px-2 py-1 rounded-lg"
-                      >
-                        Bill
-                      </button>
                     </div>
                   ))}
                 </div>
@@ -127,14 +88,6 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({ onMenuToggle }) => {
             )}
           </div>
 
-          {/* + New Sale Primary CTA */}
-          <button
-            onClick={() => setActiveTab('pos')}
-            className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white shadow-md shadow-blue-600/25 transition-all active:scale-95"
-          >
-            <Plus className="w-4 h-4 stroke-[2.5]" />
-            <span>New sale</span>
-          </button>
         </div>
       </div>
     </header>
