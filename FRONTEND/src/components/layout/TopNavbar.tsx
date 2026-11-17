@@ -13,7 +13,8 @@ interface TopNavbarProps {
 export const TopNavbar: React.FC<TopNavbarProps> = ({ onMenuToggle }) => {
   const {
     settings,
-    detections
+    detections,
+    isSupabaseConnected
   } = useWashFlow();
 
   const [showNotifications, setShowNotifications] = useState(false);
@@ -47,10 +48,13 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({ onMenuToggle }) => {
 
         {/* Right Section: IoT Status + Notifications */}
         <div className="flex items-center gap-3">
-          {/* Camera integration is intentionally simulated until hardware is verified. */}
-          <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-amber-50 text-amber-800 border border-amber-200 text-xs font-semibold">
-            <span className="w-2 h-2 rounded-full bg-amber-500" />
-            <span>Demo data · IoT pending</span>
+          <div className={`hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full border text-xs font-semibold ${
+            isSupabaseConnected
+              ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
+              : 'bg-amber-50 text-amber-800 border-amber-200'
+          }`}>
+            <span className={`w-2 h-2 rounded-full ${isSupabaseConnected ? 'bg-emerald-500' : 'bg-amber-500'}`} />
+            <span>{isSupabaseConnected ? 'ESP32-CAM Live' : 'Database offline'}</span>
           </div>
 
           {/* Bell Notifications */}
@@ -78,8 +82,9 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({ onMenuToggle }) => {
                       className="p-2 bg-slate-50 rounded-xl flex items-center justify-between text-xs"
                     >
                       <div>
-                        <div className="font-mono font-bold text-slate-900">{det.plateNumber}</div>
+                        <div className="font-semibold text-slate-900">{det.vehicleClass}</div>
                         <div className="text-[10px] text-slate-500">{det.vehicleType}</div>
+                        <div className="text-[10px] text-slate-400">{det.timestamp}</div>
                       </div>
                     </div>
                   ))}

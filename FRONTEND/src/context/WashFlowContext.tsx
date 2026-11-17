@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useMemo } from 'react';
+import React, { createContext, useContext, useState, useMemo, useEffect } from 'react';
 import {
   ActiveTab,
   VehicleDetection,
@@ -8,22 +8,27 @@ import {
   Customer,
   BusinessSettings,
   PaymentMethod,
-  WashBay,
   ExpenseRecord
 } from '../types';
+import {
+  fetchLiveDetections,
+  subscribeToLiveDetections,
+  normalizeVehicleClass,
+  resolveDetectionImage
+} from '../services/vehicleDetectionService';
 
 interface WashFlowContextType {
   // Navigation
   activeTab: ActiveTab;
   setActiveTab: (tab: ActiveTab) => void;
 
-  // Wash Floor Bays
-  washBays: WashBay[];
+  // Realtime Supabase Connection Status
+  isSupabaseConnected: boolean;
 
   // Detections
   detections: VehicleDetection[];
+  captures: VehicleDetection[];
   correctPlateNumber: (detectionId: string, newPlate: string) => void;
-  triggerManualCameraDetection: () => void;
 
   // Transactions
   transactions: Transaction[];
@@ -69,365 +74,10 @@ interface WashFlowContextType {
   };
 }
 
-const initialWashBays: WashBay[] = [
-  {
-    id: 'bay-1',
-    bayNumber: 'BAY 01',
-    plateNumber: 'KDA 820H',
-    vehicleName: 'Toyota Axio • White',
-    service: 'Exterior wash',
-    elapsedMinutes: 6,
-    totalEstimatedMinutes: 15,
-    status: 'Washing'
-  },
-  {
-    id: 'bay-2',
-    bayNumber: 'BAY 02',
-    plateNumber: 'KDC 163B',
-    vehicleName: 'Subaru Forester • Black',
-    service: 'Premium wash',
-    elapsedMinutes: 12,
-    totalEstimatedMinutes: 20,
-    status: 'Washing'
-  },
-  {
-    id: 'bay-3',
-    bayNumber: 'BAY 03',
-    plateNumber: 'KCZ 406Y',
-    vehicleName: 'Mercedes C200 • Grey',
-    service: 'Wash & vacuum',
-    elapsedMinutes: 8,
-    totalEstimatedMinutes: 25,
-    status: 'Washing'
-  },
-  {
-    id: 'bay-4',
-    bayNumber: 'BAY 04',
-    plateNumber: 'KDD 771N',
-    vehicleName: 'Mazda CX-5 • Soul Red',
-    service: 'Ready for checkout',
-    elapsedMinutes: 20,
-    totalEstimatedMinutes: 20,
-    status: 'Ready'
-  }
-];
-
-const initialServices: ServiceItem[] = [
-  {
-    id: 'srv-1',
-    name: 'Exterior wash',
-    category: 'Washing',
-    price: 500,
-    durationMinutes: 20,
-    active: true,
-    description: 'High-pressure foam wash, wheel rims rinse, and hand towel dry.',
-    popular: true
-  },
-  {
-    id: 'srv-2',
-    name: 'Wash & vacuum',
-    category: 'Washing',
-    price: 600,
-    durationMinutes: 30,
-    active: true,
-    description: 'Complete high-pressure wash, cabin vacuum, dashboard wipe & tyre shine.',
-    popular: true
-  },
-  {
-    id: 'srv-3',
-    name: 'Interior detailing',
-    category: 'Interior',
-    price: 800,
-    durationMinutes: 40,
-    active: true,
-    description: 'Deep carpet vacuuming, leather/fabric seat conditioning, air vent steam.',
-    popular: true
-  },
-  {
-    id: 'srv-4',
-    name: 'Premium wash',
-    category: 'Detailing',
-    price: 900,
-    durationMinutes: 45,
-    active: true,
-    description: 'Underwash, foam wash, interior shampoo, engine steam, and spray wax.',
-    popular: true
-  },
-  {
-    id: 'srv-5',
-    name: 'Engine Steam Wash',
-    category: 'Specialty',
-    price: 750,
-    durationMinutes: 30,
-    active: true,
-    description: 'De-greasing foam and high-temperature steam cleaning for engine bay.',
-    popular: false
-  },
-  {
-    id: 'srv-6',
-    name: 'Ceramic Liquid Waxing',
-    category: 'Detailing',
-    price: 1200,
-    durationMinutes: 45,
-    active: true,
-    description: 'Hydrophobic protective liquid wax application with microfiber buff.',
-    popular: true
-  }
-];
-
-const initialCameras: CameraDevice[] = [
-  {
-    id: 'cam-gate-1',
-    name: 'Entrance Gate 1 — ANPR Primary',
-    location: 'Main Ingress Lane (North Gate)',
-    status: 'online',
-    ipAddress: '192.168.10.141',
-    resolution: '1920x1080 @ 30 FPS',
-    fps: 30,
-    todayDetections: 49,
-    lastPing: '2 seconds ago',
-    firmware: 'v3.2.4-anpr-edge',
-    duplicateCooldownMinutes: 15,
-    anprEnabled: true
-  },
-  {
-    id: 'cam-bay-1',
-    name: 'Wash Bay 1 & 2 Live Monitor',
-    location: 'Active Service Bays',
-    status: 'online',
-    ipAddress: '192.168.10.143',
-    resolution: '1920x1080 @ 25 FPS',
-    fps: 25,
-    todayDetections: 43,
-    lastPing: '4 seconds ago',
-    firmware: 'v3.2.0-core',
-    duplicateCooldownMinutes: 20,
-    anprEnabled: false
-  },
-  {
-    id: 'cam-exit-1',
-    name: 'Exit Barrier Camera',
-    location: 'South Egress Lane',
-    status: 'online',
-    ipAddress: '192.168.10.145',
-    resolution: '1920x1080 @ 30 FPS',
-    fps: 30,
-    todayDetections: 44,
-    lastPing: '1 second ago',
-    firmware: 'v3.2.4-anpr-edge',
-    duplicateCooldownMinutes: 15,
-    anprEnabled: true
-  }
-];
-
-const initialDetections: VehicleDetection[] = [
-  {
-    id: 'det-1049',
-    plateNumber: 'KDK 284J',
-    confidence: 99.2,
-    timestamp: '1 min ago',
-    cameraSource: 'Entrance camera • ANPR detection',
-    vehicleType: 'Toyota Prado • White',
-    vehicleColor: 'Pearl White',
-    status: 'confirmed',
-    isDuplicate: false,
-    entryEventId: 'EVT-9049',
-    waitingForSale: true
-  },
-  {
-    id: 'det-1048',
-    plateNumber: 'KDM 615A',
-    confidence: 98.6,
-    timestamp: '2 min ago',
-    cameraSource: 'Entrance camera • ANPR detection',
-    vehicleType: 'Honda Fit • Silver',
-    vehicleColor: 'Silver Metallic',
-    status: 'confirmed',
-    isDuplicate: false,
-    entryEventId: 'EVT-9048',
-    waitingForSale: true
-  },
-  {
-    id: 'det-1047',
-    plateNumber: 'KDD 771N',
-    confidence: 97.4,
-    timestamp: '20 min ago',
-    cameraSource: 'Entrance Gate 1',
-    vehicleType: 'Mazda CX-5 • Soul Red',
-    vehicleColor: 'Soul Red',
-    status: 'confirmed',
-    isDuplicate: false,
-    entryEventId: 'EVT-9047'
-  },
-  {
-    id: 'det-1046',
-    plateNumber: 'KCZ 406Y',
-    confidence: 98.1,
-    timestamp: '28 min ago',
-    cameraSource: 'Entrance Gate 1',
-    vehicleType: 'Mercedes C200 • Grey',
-    vehicleColor: 'Gunmetal Grey',
-    status: 'confirmed',
-    isDuplicate: false,
-    entryEventId: 'EVT-9046'
-  },
-  {
-    id: 'det-1045',
-    plateNumber: 'KDC 163B',
-    confidence: 96.8,
-    timestamp: '32 min ago',
-    cameraSource: 'Entrance Gate 1',
-    vehicleType: 'Subaru Forester • Black',
-    vehicleColor: 'Midnight Black',
-    status: 'confirmed',
-    isDuplicate: false,
-    entryEventId: 'EVT-9045'
-  },
-  {
-    id: 'det-1044',
-    plateNumber: 'KDA 820H',
-    confidence: 99.0,
-    timestamp: '36 min ago',
-    cameraSource: 'Entrance Gate 1',
-    vehicleType: 'Toyota Axio • White',
-    vehicleColor: 'White',
-    status: 'confirmed',
-    isDuplicate: false,
-    entryEventId: 'EVT-9044'
-  }
-];
-
-const initialTransactions: Transaction[] = [
-  {
-    id: 'tx-1043',
-    receiptNumber: 'TXN-1043',
-    vehiclePlate: 'KDA 481P',
-    vehicleType: 'Toyota Harrier',
-    customerName: 'David Mwangi',
-    customerPhone: '+254 712 345 678',
-    services: [
-      { serviceId: 'srv-4', name: 'Premium wash', price: 900, quantity: 1 }
-    ],
-    subtotal: 900,
-    discount: 0,
-    total: 900,
-    paymentMethod: 'M-Pesa',
-    status: 'Completed',
-    timestamp: '15:38',
-    attendantName: 'Sample attendant',
-    mpesaRef: 'RJG82K9L2P'
-  },
-  {
-    id: 'tx-1042',
-    receiptNumber: 'TXN-1042',
-    vehiclePlate: 'KCX 204R',
-    vehicleType: 'Mazda Demio',
-    customerName: 'Sarah Kimani',
-    customerPhone: '+254 722 890 123',
-    services: [
-      { serviceId: 'srv-1', name: 'Exterior wash', price: 500, quantity: 1 }
-    ],
-    subtotal: 500,
-    discount: 0,
-    total: 500,
-    paymentMethod: 'Cash',
-    status: 'Completed',
-    timestamp: '15:31',
-    attendantName: 'Sample attendant'
-  },
-  {
-    id: 'tx-1041',
-    receiptNumber: 'TXN-1041',
-    vehiclePlate: 'KDG 908T',
-    vehicleType: 'Nissan X-Trail',
-    customerName: 'John Omondi',
-    customerPhone: '+254 733 456 789',
-    services: [
-      { serviceId: 'srv-2', name: 'Wash & vacuum', price: 600, quantity: 1 }
-    ],
-    subtotal: 600,
-    discount: 0,
-    total: 600,
-    paymentMethod: 'M-Pesa',
-    status: 'Completed',
-    timestamp: '15:24',
-    attendantName: 'Sample attendant',
-    mpesaRef: 'RJG71M3X99'
-  },
-  {
-    id: 'tx-1040',
-    receiptNumber: 'TXN-1040',
-    vehiclePlate: 'KCY 317L',
-    vehicleType: 'Toyota Vitz',
-    customerName: 'Grace Njoroge',
-    customerPhone: '+254 720 112 233',
-    services: [
-      { serviceId: 'srv-1', name: 'Exterior wash', price: 500, quantity: 1 }
-    ],
-    subtotal: 500,
-    discount: 0,
-    total: 500,
-    paymentMethod: 'Card',
-    status: 'Completed',
-    timestamp: '15:17',
-    attendantName: 'Sample attendant'
-  },
-  {
-    id: 'tx-1039',
-    receiptNumber: 'TXN-1039',
-    vehiclePlate: 'KDB 592M',
-    vehicleType: 'Volkswagen Golf',
-    customerName: 'Dennis Mutua',
-    customerPhone: '+254 711 987 654',
-    services: [
-      { serviceId: 'srv-3', name: 'Interior detailing', price: 800, quantity: 1 }
-    ],
-    subtotal: 800,
-    discount: 0,
-    total: 800,
-    paymentMethod: 'M-Pesa',
-    status: 'Completed',
-    timestamp: '15:09',
-    attendantName: 'Sample attendant',
-    mpesaRef: 'RJG50P881B'
-  }
-];
-
-const initialCustomers: Customer[] = [
-  {
-    id: 'cust-1',
-    name: 'David Mwangi',
-    phone: '+254 712 345 678',
-    plateNumber: 'KDA 481P',
-    totalVisits: 14,
-    totalSpent: 16500,
-    lastVisit: 'Today 15:38',
-    tier: 'VIP',
-    preferredService: 'Premium wash'
-  },
-  {
-    id: 'cust-2',
-    name: 'Sarah Kimani',
-    phone: '+254 722 890 123',
-    plateNumber: 'KCX 204R',
-    totalVisits: 8,
-    totalSpent: 9200,
-    lastVisit: 'Today 15:31',
-    tier: 'Gold',
-    preferredService: 'Exterior wash'
-  },
-  {
-    id: 'cust-3',
-    name: 'John Omondi',
-    phone: '+254 733 456 789',
-    plateNumber: 'KDG 908T',
-    totalVisits: 5,
-    totalSpent: 3500,
-    lastVisit: 'Today 15:24',
-    tier: 'Silver',
-    preferredService: 'Wash & vacuum'
-  }
-];
+const initialServices: ServiceItem[] = [];
+const initialCameras: CameraDevice[] = [];
+const initialTransactions: Transaction[] = [];
+const initialCustomers: Customer[] = [];
 
 const initialSettings: BusinessSettings = {
   businessName: 'Your Car Wash',
@@ -448,8 +98,8 @@ const WashFlowContext = createContext<WashFlowContextType | null>(null);
 
 export const WashFlowProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [activeTab, setActiveTab] = useState<ActiveTab>('dashboard');
-  const [washBays] = useState<WashBay[]>(initialWashBays);
-  const [detections, setDetections] = useState<VehicleDetection[]>(initialDetections);
+  const [isSupabaseConnected, setIsSupabaseConnected] = useState<boolean>(false);
+  const [detections, setDetections] = useState<VehicleDetection[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>(initialTransactions);
   const [services, setServices] = useState<ServiceItem[]>(initialServices);
   const [cameras, setCameras] = useState<CameraDevice[]>(initialCameras);
@@ -467,6 +117,72 @@ export const WashFlowProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }, 3500);
   };
 
+  // Fetch initial data from Supabase and listen for realtime ESP32-CAM detections
+  useEffect(() => {
+    let unsubscribe: (() => void) | undefined;
+
+    const loadSupabaseData = async () => {
+      const rows = await fetchLiveDetections();
+      if (rows !== null) {
+        setIsSupabaseConnected(true);
+        const mappedDetections: VehicleDetection[] = rows.map((r) => ({
+          id: r.id,
+          entryEventId: r.id,
+          vehicleClass: normalizeVehicleClass(r.vehicle_class),
+          imageUrl: resolveDetectionImage(r.image_path),
+          confidence: 0,
+          timestamp: new Date(r.captured_at).toLocaleString(),
+          cameraSource: 'ESP32-CAM',
+          vehicleType: normalizeVehicleClass(r.vehicle_class),
+          status: 'confirmed',
+          isDuplicate: false,
+          waitingForSale: true
+        }));
+        setDetections(mappedDetections);
+
+      } else {
+        setIsSupabaseConnected(false);
+        setDetections([]);
+      }
+
+      unsubscribe = subscribeToLiveDetections((eventType, row) => {
+        if (eventType === 'DELETE') {
+          setDetections((prev) => prev.filter((detection) => detection.id !== row.id));
+          return;
+        }
+
+        setIsSupabaseConnected(true);
+        const vClass = normalizeVehicleClass(row.vehicle_class);
+        const imageUrl = resolveDetectionImage(row.image_path);
+        const newDetection: VehicleDetection = {
+          id: row.id,
+          entryEventId: row.id,
+          vehicleClass: vClass,
+          imageUrl,
+          confidence: 0,
+          timestamp: new Date(row.captured_at).toLocaleString(),
+          cameraSource: 'ESP32-CAM',
+          vehicleType: vClass,
+          status: 'confirmed',
+          isDuplicate: false,
+          waitingForSale: true
+        };
+
+        setDetections((prev) => {
+          if (eventType === 'UPDATE') return prev.map((detection) => detection.id === row.id ? newDetection : detection);
+          return [newDetection, ...prev.filter((detection) => detection.id !== row.id)];
+        });
+        if (eventType === 'INSERT') showToast(`ESP32-CAM: New ${vClass} capture received`);
+      });
+    };
+
+    loadSupabaseData();
+
+    return () => {
+      if (unsubscribe) unsubscribe();
+    };
+  }, []);
+
   const correctPlateNumber = (detectionId: string, newPlate: string) => {
     setDetections((prev) =>
       prev.map((det) =>
@@ -481,32 +197,6 @@ export const WashFlowProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       )
     );
     showToast(`Plate updated to ${newPlate.toUpperCase().trim()}`);
-  };
-
-  const triggerManualCameraDetection = () => {
-    const samplePlates = ['KDE 119V', 'KDG 329M', 'KDC 819T', 'KDF 501R'];
-    const plate = samplePlates[Math.floor(Math.random() * samplePlates.length)];
-    const newDetection: VehicleDetection = {
-      id: `det-${1050 + detections.length}`,
-      plateNumber: plate,
-      confidence: 99.1,
-      timestamp: 'Just now',
-      cameraSource: 'Entrance camera • ANPR detection',
-      vehicleType: 'Toyota Land Cruiser • Black',
-      vehicleColor: 'Black',
-      status: 'confirmed',
-      isDuplicate: false,
-      entryEventId: `EVT-${9050 + detections.length}`,
-      waitingForSale: true
-    };
-
-    setDetections((prev) => [newDetection, ...prev]);
-    setCameras((prev) =>
-      prev.map((c) =>
-        c.id === 'cam-gate-1' ? { ...c, todayDetections: c.todayDetections + 1, lastPing: 'Just now' } : c
-      )
-    );
-    showToast(`New vehicle arrival detected: ${plate} (Entrance camera)`);
   };
 
   const refundTransaction = (txId: string) => {
@@ -566,24 +256,20 @@ export const WashFlowProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   };
 
   const stats = useMemo(() => {
-    const gate1Cam = cameras.find((c) => c.id === 'cam-gate-1');
-    const vehiclesToday = gate1Cam ? gate1Cam.todayDetections : 49;
-
     const completedTxList = transactions.filter((t) => t.status === 'Completed');
-    const additionalTotal = transactions
-      .filter((t) => !initialTransactions.some((init) => init.id === t.id) && t.status === 'Completed')
-      .reduce((sum, t) => sum + t.total, 0);
-
-    const totalRevenue = 24500 + additionalTotal;
-    const completedSales = 43 + (completedTxList.length - initialTransactions.length);
-    const averageTransaction = 570;
-    const conversionRate = 87.8;
-    const unbilledVehicles = 6;
+    const totalRevenue = completedTxList.reduce((sum, transaction) => sum + transaction.total, 0);
+    const completedSales = completedTxList.length;
+    const averageTransaction = completedSales ? Math.round(totalRevenue / completedSales) : 0;
+    const vehiclesToday = detections.filter((detection) =>
+      new Date(detection.timestamp).toDateString() === new Date().toDateString()
+    ).length;
+    const conversionRate = vehiclesToday ? Math.round((completedSales / vehiclesToday) * 1000) / 10 : 0;
+    const unbilledVehicles = detections.filter((detection) => detection.waitingForSale).length;
 
     const revenueByMethod: Record<PaymentMethod, number> = {
-      'M-Pesa': Math.round(totalRevenue * 0.68),
-      Cash: Math.round(totalRevenue * 0.22),
-      Card: Math.round(totalRevenue * 0.10)
+      'M-Pesa': completedTxList.filter((transaction) => transaction.paymentMethod === 'M-Pesa').reduce((sum, transaction) => sum + transaction.total, 0),
+      Cash: completedTxList.filter((transaction) => transaction.paymentMethod === 'Cash').reduce((sum, transaction) => sum + transaction.total, 0),
+      Card: completedTxList.filter((transaction) => transaction.paymentMethod === 'Card').reduce((sum, transaction) => sum + transaction.total, 0)
     };
 
     return {
@@ -595,17 +281,17 @@ export const WashFlowProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       unbilledVehicles,
       revenueByMethod
     };
-  }, [cameras, transactions]);
+  }, [detections, transactions]);
 
   return (
     <WashFlowContext.Provider
       value={{
         activeTab,
         setActiveTab,
-        washBays,
+        isSupabaseConnected,
         detections,
+        captures: detections,
         correctPlateNumber,
-        triggerManualCameraDetection,
         transactions,
         selectedReceipt,
         setSelectedReceipt,

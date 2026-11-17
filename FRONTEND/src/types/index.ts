@@ -23,15 +23,21 @@ export interface ExpenseRecord {
   paymentMethod: 'Cash' | 'M-Pesa' | 'Card';
 }
 
+export type VehicleClass = 'Car' | 'Truck' | 'Bus' | 'Motorcycle' | 'Unknown' | 'car' | 'truck' | 'bus' | 'motorcycle';
+
 export interface WashBay {
   id: string;
   bayNumber: string; // 'BAY 01', 'BAY 02', etc.
-  plateNumber: string;
-  vehicleName: string;
+  plateNumber?: string;
+  vehicleClass: VehicleClass | string;
+  imageUrl?: string;
+  confidence?: number;
+  vehicleName?: string;
   service: string;
   elapsedMinutes: number;
   totalEstimatedMinutes: number;
   status: 'Washing' | 'Ready' | 'Available';
+  capturedAt?: string;
 }
 
 export interface ServiceItem {
@@ -71,18 +77,21 @@ export interface Transaction {
 
 export interface VehicleDetection {
   id: string;
-  plateNumber: string;
+  plateNumber?: string;
+  vehicleClass?: VehicleClass | string;
+  imageUrl?: string;
   confidence: number; // 0 - 100
   timestamp: string;
   cameraSource: string;
   vehicleType: string;
-  vehicleColor: string;
+  vehicleColor?: string;
   status: 'confirmed' | 'needs_review' | 'duplicate_blocked';
   isDuplicate: boolean;
   matchedTransactionId?: string; // Links if paid in POS
   entryEventId: string;
   manualCorrection?: string;
   waitingForSale?: boolean;
+  bayNumber?: string;
 }
 
 export interface CameraDevice {

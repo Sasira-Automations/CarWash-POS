@@ -1,13 +1,12 @@
 import React from 'react';
 import {
   Cctv,
-  Activity,
-  RefreshCw
+  Activity
 } from 'lucide-react';
 import { useWashFlow } from '../../context/WashFlowContext';
 
 export const CamerasView: React.FC = () => {
-  const { cameras, toggleCameraStatus, triggerManualCameraDetection, showToast } = useWashFlow();
+  const { cameras, toggleCameraStatus, showToast } = useWashFlow();
 
   return (
     <div className="space-y-6 animate-in fade-in duration-200">
@@ -25,13 +24,6 @@ export const CamerasView: React.FC = () => {
           </p>
         </div>
 
-        <button
-          onClick={triggerManualCameraDetection}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white shadow-md shadow-blue-600/30 transition-all hover:scale-[1.02]"
-        >
-          <RefreshCw className="w-4 h-4" />
-          <span>Ping Cameras & Test Detection</span>
-        </button>
       </div>
 
       {/* Camera Grid */}

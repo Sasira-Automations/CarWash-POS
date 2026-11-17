@@ -2,11 +2,13 @@
 from pathlib import Path
 from datetime import datetime, timezone
 from contextlib import asynccontextmanager
+import os
 
 import cv2
 import numpy as np
 
 from fastapi import FastAPI, UploadFile, File, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from ultralytics import YOLO
 
 # --------------------------------------------------
