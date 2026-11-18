@@ -3,8 +3,11 @@ import {
   Menu,
   MapPin,
   Bell,
+  LogOut,
+  User
 } from 'lucide-react';
 import { useWashFlow } from '../../context/WashFlowContext';
+import { useAuth } from '../../context/AuthContext';
 
 interface TopNavbarProps {
   onMenuToggle: () => void;
@@ -16,6 +19,7 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({ onMenuToggle }) => {
     detections,
     isSupabaseConnected
   } = useWashFlow();
+  const { user, signOut } = useAuth();
 
   const [showNotifications, setShowNotifications] = useState(false);
 
@@ -91,6 +95,28 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({ onMenuToggle }) => {
                 </div>
               </div>
             )}
+          </div>
+
+          {/* Owner Profile Chip */}
+          <div className="hidden sm:flex items-center gap-2.5 pl-3 border-l border-slate-200">
+            <div className="w-8 h-8 rounded-xl bg-blue-50 border border-blue-200 flex items-center justify-center text-blue-700 font-bold text-xs shadow-xs">
+              {user?.fullName ? user.fullName.charAt(0).toUpperCase() : <User className="w-4 h-4" />}
+            </div>
+            <div className="text-left hidden md:block">
+              <div className="text-xs font-bold text-slate-900 leading-tight truncate max-w-[140px]">
+                {user?.fullName || 'Car Wash Owner'}
+              </div>
+              <div className="text-[10px] text-blue-600 font-semibold leading-tight">
+                Owner Account
+              </div>
+            </div>
+            <button
+              onClick={() => signOut()}
+              title="Sign out of owner session"
+              className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors ml-1"
+            >
+              <LogOut className="w-4 h-4" />
+            </button>
           </div>
 
         </div>

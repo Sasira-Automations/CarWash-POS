@@ -7,8 +7,14 @@ import {
   Receipt,
   BarChart3,
   ArrowUpRight,
+  ArrowRight,
   Activity,
-  Droplets
+  Droplets,
+  Smartphone,
+  Banknote,
+  CreditCard,
+  TrendingUp,
+  Clock
 } from 'lucide-react';
 import { useWashFlow } from '../../context/WashFlowContext';
 import { VehicleDetection } from '../../types';
@@ -30,9 +36,30 @@ export const DashboardView: React.FC = () => {
   const captureCount = captures.length;
   const visibleTransactions = transactions.slice(0, 5);
   const paymentMethods = [
-    { label: 'M-Pesa', amount: stats.revenueByMethod['M-Pesa'], color: 'bg-blue-600' },
-    { label: 'Cash', amount: stats.revenueByMethod.Cash, color: 'bg-emerald-500' },
-    { label: 'Card', amount: stats.revenueByMethod.Card, color: 'bg-amber-400' }
+    {
+      label: 'M-Pesa' as const,
+      amount: stats.revenueByMethod['M-Pesa'],
+      color: 'bg-emerald-500',
+      badgeBg: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+      iconBg: 'bg-emerald-50 text-emerald-600 border border-emerald-100',
+      icon: Smartphone
+    },
+    {
+      label: 'Cash' as const,
+      amount: stats.revenueByMethod.Cash,
+      color: 'bg-sky-500',
+      badgeBg: 'bg-sky-50 text-sky-700 border-sky-200',
+      iconBg: 'bg-sky-50 text-sky-600 border border-sky-100',
+      icon: Banknote
+    },
+    {
+      label: 'Card' as const,
+      amount: stats.revenueByMethod.Card,
+      color: 'bg-violet-500',
+      badgeBg: 'bg-violet-50 text-violet-700 border-violet-200',
+      iconBg: 'bg-violet-50 text-violet-600 border border-violet-100',
+      icon: CreditCard
+    }
   ];
   const formatKsh = (amount: number) => `KSh ${amount.toLocaleString('en-KE')}`;
 
@@ -198,7 +225,7 @@ export const DashboardView: React.FC = () => {
                       {/* Captured Image from ESP32-CAM */}
                       <div
                         onClick={() => capture.imageUrl && setPreviewCapture(capture)}
-                        className="relative w-full h-28 sm:h-32 rounded-xl overflow-hidden bg-slate-900 border border-slate-200 group cursor-pointer shadow-inner flex items-center justify-center"
+                        className="relative w-full h-28 sm:h-32 rounded-2xl overflow-hidden bg-slate-900 border border-white/80 ring-1 ring-slate-200/80 group cursor-pointer shadow-md shadow-slate-900/10 flex items-center justify-center"
                       >
                         {capture.imageUrl ? (
                           <>
@@ -259,30 +286,100 @@ export const DashboardView: React.FC = () => {
 
       </div>
 
-      {/* BOTTOM ROW: Revenue Overview (4 Cols) + Recent Sales (8 Cols) */}
+      {/* BOTTOM ROW: Revenue Overview (5 Cols) + Recent Sales (7 Cols) */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
-        {/* Revenue Overview Chart (4 Cols) */}
-        <div className="lg:col-span-5 dashboard-surface p-5 sm:p-6 flex flex-col justify-between">
+        {/* Revenue Overview Card (5 Cols) */}
+        <div className="lg:col-span-5 rounded-2xl bg-white border border-[#dfe7f1] p-5 sm:p-6 shadow-sm flex flex-col justify-between transition-all hover:shadow-md">
           <div>
-            <h2 className="text-base font-bold text-slate-900">Revenue overview</h2>
-            <div className="text-3xl font-extrabold text-slate-900 tracking-tight mt-2">
-              {formatKsh(stats.totalRevenue)}
-            </div>
-            <div className="flex items-center gap-2 text-xs mt-1 text-slate-500">
-              <span>Collected across completed sales</span>
+            {/* Header */}
+            <div className="flex items-center justify-between pb-3.5 border-b border-slate-100">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600">
+                  <TrendingUp className="w-4 h-4" />
+                </div>
+                <div>
+                  <h2 className="text-sm font-bold text-slate-900 tracking-tight">Revenue overview</h2>
+                  <p className="text-[11px] text-slate-500">Collected across completed sales</p>
+                </div>
+              </div>
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                Live intake
+              </span>
             </div>
 
-            <div className="mt-7 mb-4 space-y-4">
+            {/* Total Revenue Display */}
+            <div className="mt-4">
+              <div className="text-3xl font-extrabold text-slate-900 tracking-tight">
+                {formatKsh(stats.totalRevenue)}
+              </div>
+              <div className="mt-1 flex items-center gap-2 text-xs text-slate-500">
+                <span>{stats.completedSales} {stats.completedSales === 1 ? 'sale' : 'sales'} recorded today</span>
+                {stats.averageTransaction > 0 && (
+                  <>
+                    <span className="text-slate-300">·</span>
+                    <span>Avg {formatKsh(stats.averageTransaction)}</span>
+                  </>
+                )}
+              </div>
+            </div>
+
+            {/* Unified Segmented Distribution Bar */}
+            <div className="mt-5">
+              <div className="h-2 w-full rounded-full bg-slate-100 overflow-hidden flex p-0.5 gap-0.5">
+                {stats.totalRevenue > 0 ? (
+                  paymentMethods.map((method) => {
+                    const share = (method.amount / stats.totalRevenue) * 100;
+                    if (share <= 0) return null;
+                    return (
+                      <div
+                        key={method.label}
+                        className={`h-full rounded-full ${method.color} transition-all duration-500`}
+                        style={{ width: `${share}%` }}
+                        title={`${method.label}: ${formatKsh(method.amount)} (${Math.round(share)}%)`}
+                      />
+                    );
+                  })
+                ) : (
+                  <div className="h-full w-full rounded-full bg-slate-200" />
+                )}
+              </div>
+            </div>
+
+            {/* Payment Method Breakdown Cards */}
+            <div className="mt-4 space-y-2.5">
               {paymentMethods.map((method) => {
                 const share = stats.totalRevenue > 0 ? Math.round((method.amount / stats.totalRevenue) * 100) : 0;
+                const MethodIcon = method.icon;
+                const txCount = transactions.filter(
+                  (t) => t.paymentMethod === method.label && t.status === 'Completed'
+                ).length;
+
                 return (
-                  <div key={method.label}>
-                    <div className="mb-1.5 flex items-center justify-between text-xs">
-                      <span className="font-semibold text-slate-700">{method.label}</span>
-                      <span className="tabular-nums text-slate-500">{formatKsh(method.amount)} · {share}%</span>
+                  <div
+                    key={method.label}
+                    className="flex items-center justify-between p-2.5 rounded-xl border border-slate-100 bg-slate-50/60 hover:bg-slate-50 transition-colors"
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${method.iconBg}`}>
+                        <MethodIcon className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-xs font-bold text-slate-800">{method.label}</span>
+                          <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-md border ${method.badgeBg}`}>
+                            {share}%
+                          </span>
+                        </div>
+                        <span className="text-[11px] text-slate-400">
+                          {txCount} {txCount === 1 ? 'sale' : 'sales'}
+                        </span>
+                      </div>
                     </div>
-                    <div className="h-2 overflow-hidden rounded-full bg-slate-100">
-                      <div className={`h-full rounded-full ${method.color}`} style={{ width: `${share}%` }} />
+                    <div className="text-right">
+                      <span className="text-xs font-bold text-slate-900 font-mono">
+                        {formatKsh(method.amount)}
+                      </span>
                     </div>
                   </div>
                 );
@@ -290,39 +387,50 @@ export const DashboardView: React.FC = () => {
             </div>
           </div>
 
-          <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-400 font-medium">
-            <span>Payment mix</span>
+          {/* Footer */}
+          <div className="mt-5 pt-3.5 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-400 font-medium">
+            <span className="flex items-center gap-1">
+              <Receipt className="w-3.5 h-3.5 text-slate-400" />
+              Reconciled automatically
+            </span>
             <span>Paid sales only</span>
           </div>
         </div>
 
-        {/* Recent Sales Table (7 or 8 Cols) */}
-        <div className="lg:col-span-7 dashboard-surface p-5 sm:p-6 flex flex-col justify-between">
+        {/* Recent Sales Table (7 Cols) */}
+        <div className="lg:col-span-7 rounded-2xl bg-white border border-[#dfe7f1] p-5 sm:p-6 shadow-sm flex flex-col justify-between transition-all hover:shadow-md">
           <div>
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <h2 className="text-base font-bold text-slate-900">Recent sales</h2>
-                <p className="text-xs text-slate-400 mt-0.5">Latest completed checkouts</p>
+            {/* Header */}
+            <div className="flex items-center justify-between pb-3.5 border-b border-slate-100">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl bg-cyan-50 border border-cyan-100 flex items-center justify-center text-cyan-700">
+                  <Receipt className="w-4 h-4" />
+                </div>
+                <div>
+                  <h2 className="text-sm font-bold text-slate-900 tracking-tight">Recent sales</h2>
+                  <p className="text-[11px] text-slate-500">Latest completed checkouts</p>
+                </div>
               </div>
 
               <button
                 onClick={() => setActiveTab('transactions')}
-                className="text-xs font-semibold text-blue-600 hover:text-blue-800 flex items-center gap-1"
+                className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold text-blue-600 hover:text-blue-700 hover:bg-blue-50 transition-colors"
               >
-                <span>View all transactions →</span>
+                <span>View all transactions</span>
+                <ArrowRight className="w-3.5 h-3.5" />
               </button>
             </div>
 
             {/* Table */}
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto mt-2">
               <table className="w-full text-left text-xs">
                 <thead>
                   <tr className="border-b border-slate-100 text-slate-400 uppercase text-[10px] font-semibold tracking-wider">
-                    <th className="pb-2.5">VEHICLE</th>
-                    <th className="pb-2.5">SERVICE</th>
-                    <th className="pb-2.5">PAID AT</th>
-                    <th className="pb-2.5">PAYMENT</th>
-                    <th className="pb-2.5 text-right">AMOUNT</th>
+                    <th className="py-2.5">VEHICLE TYPE</th>
+                    <th className="py-2.5">SERVICES</th>
+                    <th className="py-2.5">TIME</th>
+                    <th className="py-2.5">PAYMENT</th>
+                    <th className="py-2.5 text-right">AMOUNT</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 font-medium">
@@ -330,45 +438,100 @@ export const DashboardView: React.FC = () => {
                     <tr
                       key={tx.id}
                       onClick={() => setSelectedReceipt(tx)}
-                      className="hover:bg-slate-50/80 cursor-pointer transition-colors"
+                      className="group hover:bg-slate-50/80 cursor-pointer transition-colors"
                     >
+                      {/* Vehicle Type (Plate removed!) */}
                       <td className="py-3">
-                        <div className="font-mono font-bold text-slate-900">{tx.vehiclePlate}</div>
-                        <div className="text-[10px] text-slate-400">{tx.vehicleType}</div>
+                        <div className="flex items-center gap-2">
+                          <div className="w-7 h-7 rounded-lg bg-slate-100 border border-slate-200/60 flex items-center justify-center text-slate-600 shrink-0">
+                            <Car className="w-3.5 h-3.5" />
+                          </div>
+                          <div>
+                            <div className="font-semibold text-slate-900 capitalize text-xs">
+                              {tx.vehicleType || 'Vehicle'}
+                            </div>
+                            <div className="text-[10px] text-slate-400 font-mono">
+                              {tx.receiptNumber ? `#${tx.receiptNumber}` : tx.id.slice(0, 8)}
+                            </div>
+                          </div>
+                        </div>
                       </td>
 
-                      <td className="py-3 text-slate-700">
-                        {tx.services.map((s) => s.name).join(', ')}
-                      </td>
-
-                      <td className="py-3 text-slate-500 font-mono text-[11px]">
-                        {tx.timestamp}
-                      </td>
-
+                      {/* Services as chips */}
                       <td className="py-3">
-                        <span className="flex items-center gap-1.5 text-slate-700">
-                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                          <span>{tx.paymentMethod}</span>
-                        </span>
+                        <div className="flex flex-wrap gap-1 max-w-[200px]">
+                          {tx.services.map((s, idx) => (
+                            <span
+                              key={idx}
+                              className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-medium bg-slate-100 text-slate-700 border border-slate-200/60"
+                            >
+                              {s.name}
+                            </span>
+                          ))}
+                        </div>
                       </td>
 
+                      {/* Time */}
+                      <td className="py-3">
+                        <div className="flex items-center gap-1.5 text-slate-500 font-mono text-[11px]">
+                          <Clock className="w-3 h-3 text-slate-400 shrink-0" />
+                          <span>{tx.timestamp}</span>
+                        </div>
+                      </td>
+
+                      {/* Payment Method Badge */}
+                      <td className="py-3">
+                        {tx.paymentMethod === 'M-Pesa' && (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                            M-Pesa
+                          </span>
+                        )}
+                        {tx.paymentMethod === 'Cash' && (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-sky-50 text-sky-700 border border-sky-200">
+                            <span className="w-1.5 h-1.5 rounded-full bg-sky-500" />
+                            Cash
+                          </span>
+                        )}
+                        {tx.paymentMethod === 'Card' && (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-violet-50 text-violet-700 border border-violet-200">
+                            <span className="w-1.5 h-1.5 rounded-full bg-violet-500" />
+                            Card
+                          </span>
+                        )}
+                      </td>
+
+                      {/* Amount with receipt prompt on hover */}
                       <td className="py-3 text-right">
-                        <span className="font-bold text-slate-900 font-mono">
-                          KSh {tx.total.toLocaleString()}
-                        </span>
-                        <ArrowUpRight className="w-3 h-3 text-slate-400 inline ml-1" />
+                        <div className="flex items-center justify-end gap-1">
+                          <span className="font-bold text-slate-900 font-mono text-xs">
+                            KSh {tx.total.toLocaleString()}
+                          </span>
+                          <ArrowUpRight className="w-3 h-3 text-slate-400 group-hover:text-blue-600 transition-colors" />
+                        </div>
                       </td>
                     </tr>
                   ))}
+
+                  {visibleTransactions.length === 0 && (
+                    <tr>
+                      <td colSpan={5} className="py-8 text-center text-xs text-slate-400">
+                        No sales recorded yet. Completed transactions will appear here.
+                      </td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
             </div>
           </div>
 
           {/* Footer info */}
-          <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-400">
+          <div className="mt-4 pt-3.5 border-t border-slate-100 flex items-center justify-between text-xs text-slate-400">
             <span>Showing {visibleTransactions.length} of {stats.completedSales} completed sales</span>
-            <span className="text-emerald-700 font-medium">All payments reconciled</span>
+            <span className="inline-flex items-center gap-1 text-emerald-700 font-medium text-[11px]">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+              All payments reconciled
+            </span>
           </div>
         </div>
       </div>

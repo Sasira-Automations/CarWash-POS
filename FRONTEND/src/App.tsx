@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
+import { AuthProvider, useAuth } from './context/AuthContext';
 import { WashFlowProvider, useWashFlow } from './context/WashFlowContext';
+import { AuthPage } from './components/auth/AuthPage';
 import { Sidebar } from './components/layout/Sidebar';
 import { TopNavbar } from './components/layout/TopNavbar';
 import { DashboardView } from './components/dashboard/DashboardView';
@@ -12,7 +14,7 @@ import { CamerasView } from './components/cameras/CamerasView';
 import { SettingsView } from './components/settings/SettingsView';
 import { ExpensesView } from './components/expenses/ExpensesView';
 import { ReceiptModal } from './components/modals/ReceiptModal';
-import { CheckCircle2 } from 'lucide-react';
+import { CheckCircle2, Droplets, Loader2 } from 'lucide-react';
 
 const WashFlowMainApp: React.FC = () => {
   const { activeTab, selectedReceipt, setSelectedReceipt, toastMessage } = useWashFlow();
@@ -62,11 +64,41 @@ const WashFlowMainApp: React.FC = () => {
   );
 };
 
-export function App() {
+const AppContent: React.FC = () => {
+  const { user, isLoading } = useAuth();
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-[#0b1830] flex flex-col items-center justify-center text-white p-4">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-12 h-12 rounded-2xl bg-white/10 border border-white/15 flex items-center justify-center text-cyan-300">
+            <Droplets className="w-6 h-6 animate-pulse" />
+          </div>
+          <div className="flex items-center gap-2 text-xs font-bold tracking-wider uppercase text-cyan-200">
+            <Loader2 className="w-4 h-4 animate-spin text-cyan-400" />
+            <span>Loading WashFlow...</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <AuthPage />;
+  }
+
   return (
     <WashFlowProvider>
       <WashFlowMainApp />
     </WashFlowProvider>
+  );
+};
+
+export function App() {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
   );
 }
 

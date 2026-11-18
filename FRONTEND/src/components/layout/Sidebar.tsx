@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { CarFront, Droplets, Wallet, Settings, LogOut, CircleUserRound } from 'lucide-react';
 import { useWashFlow } from '../../context/WashFlowContext';
+import { useAuth } from '../../context/AuthContext';
 
 interface SidebarProps {
   mobileOpen: boolean;
@@ -42,13 +43,14 @@ const ReportsBarsIcon: React.FC<{ className?: string }> = ({ className = 'w-6 h-
 
 export const Sidebar: React.FC<SidebarProps> = ({ mobileOpen, setMobileOpen }) => {
   const { activeTab, setActiveTab, showToast } = useWashFlow();
+  const { user, signOut } = useAuth();
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
 
-  const endDemoSession = () => {
-    setActiveTab('dashboard');
+  const handleLogout = async () => {
     setProfileMenuOpen(false);
     setMobileOpen(false);
-    showToast('Demo session ended');
+    await signOut();
+    showToast('Signed out of owner session');
   };
 
   const navItems = [
@@ -174,8 +176,12 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileOpen, setMobileOpen }) =
             {profileMenuOpen && (
               <div className="absolute bottom-[calc(100%-8px)] left-3 z-20 w-56 rounded-lg border border-slate-200 bg-white p-2 shadow-[0_12px_30px_rgba(24,50,82,0.18)]">
                 <div className="border-b border-slate-100 px-3 py-2">
-                  <div className="text-xs font-bold text-slate-900">Staff account</div>
-                  <div className="mt-0.5 text-[10px] text-slate-500">Wash attendant</div>
+                  <div className="text-xs font-bold text-slate-900 truncate">
+                    {user?.fullName || 'Car Wash Owner'}
+                  </div>
+                  <div className="mt-0.5 text-[10px] text-slate-500 truncate">
+                    {user?.email || 'Owner Account'}
+                  </div>
                 </div>
                 <button
                   type="button"
@@ -191,7 +197,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileOpen, setMobileOpen }) =
                 </button>
                 <button
                   type="button"
-                  onClick={endDemoSession}
+                  onClick={handleLogout}
                   className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-xs font-semibold text-rose-700 hover:bg-rose-50"
                 >
                   <LogOut className="h-4 w-4" />
