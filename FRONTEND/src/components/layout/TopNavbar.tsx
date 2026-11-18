@@ -16,8 +16,7 @@ interface TopNavbarProps {
 export const TopNavbar: React.FC<TopNavbarProps> = ({ onMenuToggle }) => {
   const {
     settings,
-    detections,
-    isSupabaseConnected
+    detections
   } = useWashFlow();
   const { user, signOut } = useAuth();
 
@@ -50,17 +49,8 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({ onMenuToggle }) => {
           </div>
         </div>
 
-        {/* Right Section: IoT Status + Notifications */}
+        {/* Right Section: Notifications */}
         <div className="flex items-center gap-3">
-          <div className={`hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full border text-xs font-semibold ${
-            isSupabaseConnected
-              ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
-              : 'bg-amber-50 text-amber-800 border-amber-200'
-          }`}>
-            <span className={`w-2 h-2 rounded-full ${isSupabaseConnected ? 'bg-emerald-500' : 'bg-amber-500'}`} />
-            <span>{isSupabaseConnected ? 'ESP32-CAM Live' : 'Database offline'}</span>
-          </div>
-
           {/* Bell Notifications */}
           <div className="relative">
             <button

@@ -145,7 +145,7 @@ export const ExpensesView: React.FC = () => {
             <Plus className="h-4 w-4" />
             Add expense
           </button>
-          <p className="text-[10px] leading-relaxed text-slate-400">Demo entries are held in browser memory and will reset on refresh. Persistent records will be connected through Supabase.</p>
+          <p className="text-[10px] leading-relaxed text-slate-400">Entries are held in this session and will reset when the page is refreshed.</p>
         </form>
 
         <section className="overflow-hidden rounded-xl border border-[#dfe7f1] bg-white shadow-[0_6px_20px_rgba(32,64,100,0.05)]">

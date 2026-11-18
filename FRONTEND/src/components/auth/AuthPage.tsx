@@ -7,6 +7,7 @@ import {
   EyeOff,
   User,
   Building2,
+  MapPin,
   ArrowRight,
   CheckCircle2,
   AlertCircle,
@@ -23,6 +24,8 @@ export const AuthPage: React.FC = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [fullName, setFullName] = useState('');
   const [businessName, setBusinessName] = useState('');
+  const [branchName, setBranchName] = useState('');
+  const [location, setLocation] = useState('');
   const [showPassword, setShowPassword] = useState(false);
 
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -61,6 +64,18 @@ export const AuthPage: React.FC = () => {
         setErrorMsg('Passwords do not match. Please verify your password.');
         return;
       }
+      if (!businessName.trim()) {
+        setErrorMsg('Please enter a business name.');
+        return;
+      }
+      if (!branchName.trim()) {
+        setErrorMsg('Please enter a branch name.');
+        return;
+      }
+      if (!location.trim()) {
+        setErrorMsg('Please enter the physical location.');
+        return;
+      }
     }
 
     setIsSubmitting(true);
@@ -76,7 +91,9 @@ export const AuthPage: React.FC = () => {
           email,
           password,
           fullName,
-          businessName: businessName.trim() || undefined
+          businessName: businessName.trim() || undefined,
+          branchName: branchName.trim() || undefined,
+          location: location.trim() || undefined,
         });
 
         if (result.error) {
@@ -112,12 +129,11 @@ export const AuthPage: React.FC = () => {
           {/* Prominent Car Wash Banner Image Layer */}
           <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
             <img
-              src="/images/car-wash-banner-art.png"
-              alt="A freshly cleaned vehicle"
-              className="w-full h-full object-cover object-center"
+              src="/images/Screenshot%20From%202026-11-18%2016-51-14.png"
+              alt="Blue car covered in wash foam"
+              className="auth-hero-image w-full h-full object-cover object-center"
             />
-            {/* Balanced gradient overlay: keeps image prominently visible while ensuring sharp text readability */}
-            <div className="absolute inset-0 bg-[#102e2d]/65" />
+            <div className="absolute inset-0 bg-gradient-to-r from-[#102e2d]/50 via-[#102e2d]/20 to-[#102e2d]/10" />
           </div>
 
           {/* Brand and concise product context */}
@@ -145,18 +161,7 @@ export const AuthPage: React.FC = () => {
         {/* Right Form Panel (7 Cols) */}
         <div className="lg:col-span-7 p-6 sm:p-10 lg:p-14 flex flex-col justify-between bg-white">
           <div>
-            {/* Supabase Unconfigured Warning if needed */}
-            {!isConfigured && (
-              <div className="mb-6 p-4 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 text-xs flex items-start gap-3">
-                <AlertCircle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
-                <div>
-                  <span className="font-bold">Supabase credentials required</span>
-                  <p className="mt-0.5 text-amber-800 text-[11px]">
-                    To enable authentication, configure your <code className="bg-amber-100 px-1 py-0.5 rounded">VITE_SUPABASE_URL</code> and <code className="bg-amber-100 px-1 py-0.5 rounded">VITE_SUPABASE_ANON_KEY</code> in your environment file.
-                  </p>
-                </div>
-              </div>
-            )}
+            {/* Authentication setup notice */}
 
             {/* Header Titles */}
             <div className="mb-6">
@@ -239,7 +244,7 @@ export const AuthPage: React.FC = () => {
                   {/* Car Wash Business / Branch Name */}
                   <div>
                     <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                      Business or Branch Name <span className="text-slate-400 font-normal">(Optional)</span>
+                      Business Name
                     </label>
                     <div className="relative">
                       <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
@@ -247,9 +252,48 @@ export const AuthPage: React.FC = () => {
                       </div>
                       <input
                         type="text"
+                        required
                         value={businessName}
                         onChange={(e) => setBusinessName(e.target.value)}
-                        placeholder="e.g. Sparkle Wash - Main Branch"
+                        placeholder="e.g. Sparkle Wash"
+                        className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition-all font-medium"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Branch Name */}
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                      Branch Name
+                    </label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                        <MapPin className="w-4 h-4" />
+                      </div>
+                      <input
+                        type="text"
+                        value={branchName}
+                        onChange={(e) => setBranchName(e.target.value)}
+                        placeholder="e.g. Main Branch"
+                        className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition-all font-medium"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Physical Location */}
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                      Physical Location
+                    </label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                        <MapPin className="w-4 h-4" />
+                      </div>
+                      <input
+                        type="text"
+                        value={location}
+                        onChange={(e) => setLocation(e.target.value)}
+                        placeholder="e.g. 123 Wash St, Clean City"
                         className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition-all font-medium"
                       />
                     </div>

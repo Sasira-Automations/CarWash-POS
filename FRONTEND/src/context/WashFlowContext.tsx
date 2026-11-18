@@ -16,6 +16,7 @@ import {
   normalizeVehicleClass,
   resolveDetectionImage
 } from '../services/vehicleDetectionService';
+import { useAuth } from './AuthContext';
 
 interface WashFlowContextType {
   // Navigation
@@ -98,6 +99,7 @@ const initialSettings: BusinessSettings = {
 const WashFlowContext = createContext<WashFlowContextType | null>(null);
 
 export const WashFlowProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<ActiveTab>('dashboard');
   const [isSupabaseConnected, setIsSupabaseConnected] = useState<boolean>(false);
   const [detections, setDetections] = useState<VehicleDetection[]>([]);
@@ -106,7 +108,13 @@ export const WashFlowProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const [cameras, setCameras] = useState<CameraDevice[]>(initialCameras);
   const [customers, setCustomers] = useState<Customer[]>(initialCustomers);
   const [expenses, setExpenses] = useState<ExpenseRecord[]>([]);
-  const [settings, setSettings] = useState<BusinessSettings>(initialSettings);
+  const [settings, setSettings] = useState<BusinessSettings>(() => ({
+    ...initialSettings,
+    businessName: user?.businessName || initialSettings.businessName,
+    branch: user?.branchName || initialSettings.branch,
+    location: user?.location || initialSettings.location,
+    email: user?.email || ''
+  }));
 
   const [selectedReceipt, setSelectedReceipt] = useState<Transaction | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -118,7 +126,7 @@ export const WashFlowProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }, 3500);
   };
 
-  // Fetch initial data from Supabase and listen for realtime ESP32-CAM detections
+  // Load capture data and listen for new vehicle activity.
   useEffect(() => {
     let unsubscribe: (() => void) | undefined;
 
@@ -133,7 +141,7 @@ export const WashFlowProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           imageUrl: resolveDetectionImage(r.image_path),
           confidence: 0,
           timestamp: new Date(r.captured_at).toLocaleString(),
-          cameraSource: 'ESP32-CAM',
+          cameraSource: 'Camera capture',
           vehicleType: normalizeVehicleClass(r.vehicle_class),
           status: 'confirmed',
           isDuplicate: false,
@@ -162,7 +170,7 @@ export const WashFlowProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           imageUrl,
           confidence: 0,
           timestamp: new Date(row.captured_at).toLocaleString(),
-          cameraSource: 'ESP32-CAM',
+          cameraSource: 'Camera capture',
           vehicleType: vClass,
           status: 'confirmed',
           isDuplicate: false,
@@ -173,7 +181,7 @@ export const WashFlowProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           if (eventType === 'UPDATE') return prev.map((detection) => detection.id === row.id ? newDetection : detection);
           return [newDetection, ...prev.filter((detection) => detection.id !== row.id)];
         });
-        if (eventType === 'INSERT') showToast(`ESP32-CAM: New ${vClass} capture received`);
+        if (eventType === 'INSERT') showToast(`New ${vClass} capture received`);
       });
     };
 

@@ -27,8 +27,7 @@ export const DashboardView: React.FC = () => {
     setActiveTab,
     setSelectedReceipt,
     settings,
-    stats,
-    isSupabaseConnected
+    stats
   } = useWashFlow();
 
   const [previewCapture, setPreviewCapture] = useState<VehicleDetection | null>(null);
@@ -68,7 +67,7 @@ export const DashboardView: React.FC = () => {
       <section
         className="relative isolate overflow-hidden rounded-xl bg-[#0b1830] px-5 py-6 text-white shadow-lg shadow-blue-950/10 sm:px-7 sm:py-7"
         style={{
-          backgroundImage: "linear-gradient(90deg, rgba(7, 19, 39, .86) 0%, rgba(7, 19, 39, .68) 48%, rgba(7, 19, 39, .22) 100%), url('/images/car-wash-banner-art.png')",
+          backgroundImage: "linear-gradient(90deg, rgba(7, 19, 39, .86) 0%, rgba(7, 19, 39, .68) 48%, rgba(7, 19, 39, .22) 100%), url('/images/jan-kopriva-sh_7sFEFICI-unsplash.jpg')",
           backgroundPosition: 'center 46%',
           backgroundSize: 'cover'
         }}
@@ -190,23 +189,14 @@ export const DashboardView: React.FC = () => {
                   <h2 className="text-base font-bold text-slate-900 tracking-tight">
                     Vehicle captures
                   </h2>
-                  <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                    <span>{isSupabaseConnected ? 'ESP32-CAM Live' : 'Database offline'}</span>
-                  </div>
                 </div>
                 <p className="text-xs text-slate-600 mt-0.5">
-                  Latest ESP32-CAM images and detected vehicle classes
+                  Recent vehicle images and detected vehicle classes
                 </p>
-              </div>
-
-              <div className="flex items-center gap-1.5 bg-white border border-[#d5e5f5] px-3 py-1 rounded-full text-xs font-semibold text-slate-700 shadow-xs">
-                <span className="w-2 h-2 rounded-full bg-blue-500" />
-                <span>{captureCount} recent captures</span>
               </div>
             </div>
 
-            {/* Recent ESP32-CAM captures */}
+            {/* Recent vehicle captures */}
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3.5">
               {captures.map((capture) => {
                 const classConfig = getVehicleClassConfig(capture.vehicleClass);
@@ -222,7 +212,7 @@ export const DashboardView: React.FC = () => {
                         {new Date(capture.timestamp).toLocaleString()}
                       </div>
 
-                      {/* Captured Image from ESP32-CAM */}
+                      {/* Captured vehicle image */}
                       <div
                         onClick={() => capture.imageUrl && setPreviewCapture(capture)}
                         className="relative w-full h-28 sm:h-32 rounded-2xl overflow-hidden bg-slate-900 border border-white/80 ring-1 ring-slate-200/80 group cursor-pointer shadow-md shadow-slate-900/10 flex items-center justify-center"
@@ -242,7 +232,7 @@ export const DashboardView: React.FC = () => {
                             {/* Top overlay badges */}
                             <div className="absolute top-1.5 left-1.5 flex items-center gap-1 px-1.5 py-0.5 rounded bg-black/60 backdrop-blur-xs text-[9px] font-bold text-white uppercase tracking-wider">
                               <Camera className="w-2.5 h-2.5 text-cyan-400" />
-                              <span>ESP32-CAM</span>
+                              <span>Capture</span>
                             </div>
 
                             {/* Hover zoom prompt */}
@@ -550,7 +540,7 @@ export const DashboardView: React.FC = () => {
         <div>{settings.branch}</div>
       </div>
 
-      {/* Preview Modal for ESP32-CAM Captured Image */}
+      {/* Capture preview */}
       {previewCapture && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-xs animate-in fade-in duration-150">
           <div className="relative w-full max-w-lg bg-white rounded-2xl shadow-2xl overflow-hidden border border-slate-200">
@@ -558,7 +548,7 @@ export const DashboardView: React.FC = () => {
               <div className="flex items-center gap-2">
                 <Camera className="w-4 h-4 text-blue-600" />
                 <h3 className="text-sm font-extrabold text-slate-900">
-                  ESP32-CAM Capture
+                  Capture
                 </h3>
               </div>
               <button

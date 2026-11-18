@@ -106,6 +106,24 @@ export const ServicesView: React.FC = () => {
         </button>
       </div>
 
+      {/* Professional Washer Banner */}
+      <div
+        className="relative isolate min-h-44 overflow-hidden rounded-3xl border border-slate-200/90 shadow-sm"
+        style={{
+          backgroundImage: "linear-gradient(90deg, rgba(8, 34, 42, .88) 0%, rgba(8, 34, 42, .62) 45%, rgba(8, 34, 42, .12) 100%), url('/images/professional-washer-blue-uniform-washing-luxury-car-with-water-gun-open-air-car-wash.jpg')",
+          backgroundSize: 'cover',
+          backgroundPosition: 'center 55%' 
+        }}
+      >
+        <div className="relative flex min-h-44 items-end p-6 sm:p-8">
+          <div className="max-w-md text-white">
+            <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-cyan-200">Service menu</span>
+            <h2 className="mt-1 text-xl font-extrabold sm:text-2xl">Build a clear, professional wash offering</h2>
+            <p className="mt-2 text-xs leading-relaxed text-white/80">Set pricing and durations for the services available at this branch.</p>
+          </div>
+        </div>
+      </div>
+
       {/* Category Pills */}
       <div className="flex items-center gap-2 overflow-x-auto pb-1">
         {categories.map((cat) => (
@@ -128,60 +146,72 @@ export const ServicesView: React.FC = () => {
         {filteredServices.map((service) => (
           <div
             key={service.id}
-            className={`bg-white rounded-3xl p-5 border transition-all ${
+            className={`bg-white rounded-3xl border overflow-hidden transition-all ${
               service.active
                 ? 'border-slate-200/90 shadow-sm hover:shadow-md'
                 : 'border-slate-200 opacity-60 bg-slate-50/50'
             }`}
           >
-            <div className="flex items-start justify-between">
-              <div>
-                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                  {service.category}
-                </span>
-                <h3 className="text-base font-extrabold text-slate-900 mt-0.5">
-                  {service.name}
-                </h3>
-              </div>
+            <div
+              className="h-32 bg-cover bg-center"
+              style={{
+                backgroundImage: `linear-gradient(180deg, rgba(15, 23, 42, .04), rgba(15, 23, 42, .28)), url('${
+                  service.category === 'Detailing'
+                    ? '/images/adrian-dascal-Ce_gQ7Z0eAc-unsplash.jpg'
+                    : '/images/professional-washer-blue-uniform-washing-luxury-car-with-water-gun-open-air-car-wash.jpg'
+                }')`
+              }}
+            />
+            <div className="p-5">
+              <div className="flex items-start justify-between">
+                <div>
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                    {service.category}
+                  </span>
+                  <h3 className="text-base font-extrabold text-slate-900 mt-0.5">
+                    {service.name}
+                  </h3>
+                </div>
 
-              {/* Active Toggle Switch */}
-              <button
-                onClick={() => toggleServiceActive(service.id)}
-                className="text-slate-400 hover:text-blue-600 transition-colors"
-                title={service.active ? 'Deactivate service' : 'Activate service'}
-              >
-                {service.active ? (
-                  <ToggleRight className="w-6 h-6 text-blue-600" />
-                ) : (
-                  <ToggleLeft className="w-6 h-6 text-slate-300" />
-                )}
-              </button>
-            </div>
-
-            <p className="text-xs text-slate-500 mt-2 line-clamp-2 leading-relaxed">
-              {service.description}
-            </p>
-
-            <div className="mt-4 pt-4 border-t border-slate-100 flex items-center justify-between">
-              <div>
-                <span className="text-[10px] text-slate-400 block font-medium">Standard Price</span>
-                <span className="text-lg font-extrabold text-slate-900">
-                  {settings.currency} {service.price.toLocaleString()}
-                </span>
-              </div>
-
-              <div className="flex items-center gap-3">
-                <span className="text-xs text-slate-500 flex items-center gap-1 font-medium">
-                  <Clock className="w-3.5 h-3.5 text-slate-400" /> {service.durationMinutes} mins
-                </span>
-
+                {/* Active Toggle Switch */}
                 <button
-                  onClick={() => handleOpenEdit(service)}
-                  className="p-1.5 rounded-lg border border-slate-200 hover:bg-slate-100 text-slate-600 transition-colors"
-                  title="Edit service details"
+                  onClick={() => toggleServiceActive(service.id)}
+                  className="text-slate-400 hover:text-blue-600 transition-colors"
+                  title={service.active ? 'Deactivate service' : 'Activate service'}
                 >
-                  <Edit2 className="w-3.5 h-3.5" />
+                  {service.active ? (
+                    <ToggleRight className="w-6 h-6 text-blue-600" />
+                  ) : (
+                    <ToggleLeft className="w-6 h-6 text-slate-300" />
+                  )}
                 </button>
+              </div>
+
+              <p className="text-xs text-slate-500 mt-2 line-clamp-2 leading-relaxed">
+                {service.description}
+              </p>
+
+              <div className="mt-4 pt-4 border-t border-slate-100 flex items-center justify-between">
+                <div>
+                  <span className="text-[10px] text-slate-400 block font-medium">Standard Price</span>
+                  <span className="text-lg font-extrabold text-slate-900">
+                    {settings.currency} {service.price.toLocaleString()}
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <span className="text-xs text-slate-500 flex items-center gap-1 font-medium">
+                    <Clock className="w-3.5 h-3.5 text-slate-400" /> {service.durationMinutes} mins
+                  </span>
+
+                  <button
+                    onClick={() => handleOpenEdit(service)}
+                    className="p-1.5 rounded-lg border border-slate-200 hover:bg-slate-100 text-slate-600 transition-colors"
+                    title="Edit service details"
+                  >
+                    <Edit2 className="w-3.5 h-3.5" />
+                  </button>
+                </div>
               </div>
             </div>
           </div>

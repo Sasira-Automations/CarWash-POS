@@ -32,60 +32,63 @@ export const VehicleMonitoringView: React.FC = () => {
           <div className="flex items-center gap-2 mb-1">
             <span className="w-2.5 h-2.5 rounded-full bg-blue-600 animate-pulse"></span>
             <span className="text-xs font-bold text-blue-700 bg-blue-50 px-2.5 py-0.5 rounded-full border border-blue-200">
-              ESP32-CAM database detections
+              Vehicle activity
             </span>
           </div>
           <h2 className="text-xl font-extrabold text-slate-900 tracking-tight">
             Camera-Based Vehicle Monitoring
           </h2>
           <p className="text-xs text-slate-500 mt-1 max-w-2xl">
-            Vehicle class, image path, and capture time are read from the vehicle_captures table.
+            Vehicle class, image, and capture time for recent vehicle activity.
           </p>
         </div>
 
       </div>
 
       {/* Capture counts */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white rounded-2xl p-5 border border-slate-200/90 shadow-sm">
-          <div className="flex items-center justify-between text-slate-500 text-xs font-bold uppercase tracking-wider">
-            <span>Total Captures</span>
-            <Video className="w-4 h-4 text-blue-600" />
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+        <div className="overflow-hidden rounded-2xl border border-slate-200/90 bg-white shadow-sm">
+          <div className="p-4">
+            <div className="flex items-center justify-between text-slate-500 text-xs font-bold uppercase tracking-wider"><span>Total Captures</span><Video className="h-4 w-4 text-blue-600" /></div>
+            <div className="mt-2 text-3xl font-extrabold text-slate-900">{detections.length}</div>
+            <div className="mt-1 text-[11px] text-slate-400">Loaded capture records</div>
           </div>
-          <div className="text-3xl font-extrabold text-slate-900 mt-2">
-            {detections.length}
-          </div>
-          <div className="text-[11px] text-slate-400 mt-1">Loaded capture records</div>
         </div>
 
-        <div className="bg-white rounded-2xl p-5 border border-slate-200/90 shadow-sm">
-          <div className="flex items-center justify-between text-slate-500 text-xs font-bold uppercase tracking-wider">
-            <span>Cars</span>
+        <div className="overflow-hidden rounded-2xl border border-slate-200/90 bg-white shadow-sm">
+          <div className="h-24 bg-cover bg-center" style={{ backgroundImage: "url('/images/bus.jpg')" }} />
+          <div className="p-4">
+            <div className="text-xs font-bold uppercase tracking-wider text-slate-500">Bus</div>
+            <div className="mt-2 text-3xl font-extrabold text-violet-600">{classCount('Bus')}</div>
+            <div className="mt-1 text-[11px] text-slate-400">Class: bus</div>
           </div>
-          <div className="text-3xl font-extrabold text-emerald-600 mt-2">
-            {classCount('Car')}
-          </div>
-          <div className="text-[11px] text-slate-400 mt-1">Class: car</div>
         </div>
 
-        <div className="bg-white rounded-2xl p-5 border border-slate-200/90 shadow-sm">
-          <div className="flex items-center justify-between text-slate-500 text-xs font-bold uppercase tracking-wider">
-            <span>Trucks</span>
+        <div className="overflow-hidden rounded-2xl border border-slate-200/90 bg-white shadow-sm">
+          <div className="h-24 bg-cover bg-center" style={{ backgroundImage: "url('/images/motorcycle.jpg')" }} />
+          <div className="p-4">
+            <div className="text-xs font-bold uppercase tracking-wider text-slate-500">Motorcycle</div>
+            <div className="mt-2 text-3xl font-extrabold text-emerald-600">{classCount('Motorcycle')}</div>
+            <div className="mt-1 text-[11px] text-slate-400">Class: motorcycle</div>
           </div>
-          <div className="text-3xl font-extrabold text-indigo-600 mt-2">
-            {classCount('Truck')}
-          </div>
-          <div className="text-[11px] text-slate-400 mt-1">Class: truck</div>
         </div>
 
-        <div className="bg-white rounded-2xl p-5 border border-slate-200/90 shadow-sm">
-          <div className="flex items-center justify-between text-slate-500 text-xs font-bold uppercase tracking-wider">
-            <span>Buses &amp; motorcycles</span>
+        <div className="overflow-hidden rounded-2xl border border-slate-200/90 bg-white shadow-sm">
+          <div className="h-24 bg-cover bg-center" style={{ backgroundImage: "url('/images/jan-kopriva-sh_7sFEFICI-unsplash.jpg')" }} />
+          <div className="p-4">
+            <div className="text-xs font-bold uppercase tracking-wider text-slate-500">Car</div>
+            <div className="mt-2 text-3xl font-extrabold text-blue-600">{classCount('Car')}</div>
+            <div className="mt-1 text-[11px] text-slate-400">Class: car</div>
           </div>
-          <div className="text-3xl font-extrabold text-amber-600 mt-2">
-            {classCount('Bus') + classCount('Motorcycle')}
+        </div>
+
+        <div className="overflow-hidden rounded-2xl border border-slate-200/90 bg-white shadow-sm">
+          <div className="h-24 bg-cover bg-center" style={{ backgroundImage: "url('/images/truck.jpg')" }} />
+          <div className="p-4">
+            <div className="text-xs font-bold uppercase tracking-wider text-slate-500">Truck</div>
+            <div className="mt-2 text-3xl font-extrabold text-orange-600">{classCount('Truck')}</div>
+            <div className="mt-1 text-[11px] text-slate-400">Class: truck</div>
           </div>
-          <div className="text-[11px] text-slate-400 mt-1">Classes: bus, motorcycle</div>
         </div>
       </div>
 

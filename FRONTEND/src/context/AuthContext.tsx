@@ -7,6 +7,8 @@ export interface OwnerUser {
   email: string;
   fullName?: string;
   businessName?: string;
+  branchName?: string;
+  location?: string;
 }
 
 interface SignUpParams {
@@ -14,6 +16,8 @@ interface SignUpParams {
   password: string;
   fullName: string;
   businessName?: string;
+  branchName?: string;
+  location?: string;
 }
 
 interface AuthResponse {
@@ -40,7 +44,9 @@ const formatOwnerUser = (user: User | null): OwnerUser | null => {
     id: user.id,
     email: user.email || '',
     fullName: user.user_metadata?.full_name || user.user_metadata?.name || '',
-    businessName: user.user_metadata?.business_name || 'Sparkle Wash'
+    businessName: user.user_metadata?.business_name || 'Your Car Wash',
+    branchName: user.user_metadata?.branch_name || 'Main Branch',
+    location: user.user_metadata?.location || ''
   };
 };
 
@@ -83,7 +89,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signIn = async (email: string, password: string): Promise<AuthResponse> => {
     if (!isConfigured) {
-      return { error: 'Supabase credentials are not configured in .env. Please set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY.' };
+      return { error: 'Authentication is unavailable. Please contact the administrator.' };
     }
 
     try {
@@ -109,7 +115,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signInWithGoogle = async (): Promise<AuthResponse> => {
     if (!isConfigured) {
-      return { error: 'Authentication is unavailable. Check your Supabase configuration.' };
+      return { error: 'Authentication is unavailable. Please contact the administrator.' };
     }
 
     try {
@@ -127,10 +133,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     email,
     password,
     fullName,
-    businessName
+    businessName,
+    branchName,
+    location
   }: SignUpParams): Promise<AuthResponse> => {
     if (!isConfigured) {
-      return { error: 'Supabase credentials are not configured in .env. Please set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY.' };
+      return { error: 'Authentication is unavailable. Please contact the administrator.' };
     }
 
     try {
@@ -140,7 +148,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         options: {
           data: {
             full_name: fullName.trim(),
-            business_name: businessName?.trim() || 'Sparkle Wash'
+            business_name: businessName?.trim() || 'Sparkle Wash',
+            branch_name: branchName?.trim() || '',
+            location: location?.trim() || ''
           }
         }
       });
