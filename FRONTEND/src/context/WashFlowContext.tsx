@@ -49,6 +49,7 @@ interface WashFlowContextType {
 
   // Customers
   customers: Customer[];
+  addCustomer: (customer: Pick<Customer, 'name' | 'phone' | 'plateNumber' | 'preferredService'>) => void;
 
   // Expenses
   expenses: ExpenseRecord[];
@@ -103,7 +104,7 @@ export const WashFlowProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const [transactions, setTransactions] = useState<Transaction[]>(initialTransactions);
   const [services, setServices] = useState<ServiceItem[]>(initialServices);
   const [cameras, setCameras] = useState<CameraDevice[]>(initialCameras);
-  const [customers] = useState<Customer[]>(initialCustomers);
+  const [customers, setCustomers] = useState<Customer[]>(initialCustomers);
   const [expenses, setExpenses] = useState<ExpenseRecord[]>([]);
   const [settings, setSettings] = useState<BusinessSettings>(initialSettings);
 
@@ -250,6 +251,18 @@ export const WashFlowProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     showToast('Expense recorded');
   };
 
+  const addCustomer = (customer: Pick<Customer, 'name' | 'phone' | 'plateNumber' | 'preferredService'>) => {
+    setCustomers((prev) => [{
+      ...customer,
+      id: `customer-${Date.now()}`,
+      totalVisits: 0,
+      totalSpent: 0,
+      lastVisit: 'No visits yet',
+      tier: 'Regular'
+    }, ...prev]);
+    showToast(`Customer added: ${customer.name}`);
+  };
+
   const updateSettings = (newSettings: Partial<BusinessSettings>) => {
     setSettings((prev) => ({ ...prev, ...newSettings }));
     showToast('Settings updated successfully');
@@ -304,6 +317,7 @@ export const WashFlowProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         cameras,
         toggleCameraStatus,
         customers,
+        addCustomer,
         expenses,
         addExpense,
         settings,

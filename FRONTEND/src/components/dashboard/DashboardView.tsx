@@ -151,10 +151,10 @@ export const DashboardView: React.FC = () => {
         </div>
       </div>
 
-      {/* MIDDLE SECTION: Live Wash Floor (8 Cols) + Live Arrivals (4 Cols) */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
+      {/* Vehicle captures */}
+      <div className="grid grid-cols-1 gap-5 items-stretch">
         {/* Live Wash Floor (Dark Hero Card) */}
-        <div className="lg:col-span-8 dashboard-floor p-5 sm:p-6 flex flex-col justify-between">
+        <div className="dashboard-floor p-5 sm:p-6 flex flex-col justify-between">
           <div>
             {/* Floor Header */}
             <div className="flex items-center justify-between mb-5 flex-wrap gap-2">
@@ -257,61 +257,6 @@ export const DashboardView: React.FC = () => {
           </div>
         </div>
 
-        {/* Latest captures */}
-        <div className="lg:col-span-4 dashboard-surface p-5 sm:p-6 flex flex-col justify-between">
-          <div>
-            {/* Header */}
-            <div className="flex items-center justify-between mb-3">
-              <div>
-                <h2 className="text-base font-bold text-slate-900">Latest captures</h2>
-                <p className="text-xs text-slate-500">
-                  {isSupabaseConnected ? 'Realtime ESP32-CAM stream' : 'Waiting for database connection'}
-                </p>
-              </div>
-
-              <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-xs font-semibold">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                <span>{isSupabaseConnected ? 'Live' : 'Standby'}</span>
-              </div>
-            </div>
-
-            {/* Capture list */}
-            <div className="space-y-4">
-              {captures.slice(0, 3).map((det) => (
-                <div
-                  key={det.id}
-                  className="pb-3 border-b border-slate-100 last:border-b-0 last:pb-0"
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex items-start gap-2.5">
-                      {det.imageUrl && (
-                        <img
-                          src={det.imageUrl}
-                          alt={det.vehicleType}
-                          className="w-12 h-10 object-cover rounded-lg border border-slate-200 shrink-0 shadow-2xs mt-0.5"
-                        />
-                      )}
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <span className="font-extrabold text-xs px-2 py-0.5 rounded-md bg-slate-100 text-slate-800">
-                            {det.vehicleClass || det.plateNumber}
-                          </span>
-                          <span className="text-[11px] text-slate-400">{det.timestamp}</span>
-                        </div>
-                        <div className="text-xs text-slate-600 mt-1 font-medium">{det.vehicleType}</div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-              {captures.length === 0 && (
-                <p className="py-5 text-center text-xs text-slate-500">
-                  No captures are visible. Check the Supabase project and table read access.
-                </p>
-              )}
-            </div>
-          </div>
-        </div>
       </div>
 
       {/* BOTTOM ROW: Revenue Overview (4 Cols) + Recent Sales (8 Cols) */}
