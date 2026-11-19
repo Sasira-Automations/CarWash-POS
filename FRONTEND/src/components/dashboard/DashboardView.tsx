@@ -106,72 +106,72 @@ export const DashboardView: React.FC = () => {
       </section>
 
       {/* TOP 4 KPI CARDS */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
         {/* Card 1: Collected revenue (Dark High-Contrast Card) */}
-        <div className="dashboard-kpi dashboard-kpi-revenue p-5 flex flex-col justify-between">
+        <div className="dashboard-kpi dashboard-kpi-revenue p-3.5 sm:p-5 flex flex-col justify-between">
           <div className="flex items-center justify-between text-slate-600 text-xs">
-            <span>Collected revenue</span>
-            <div className="w-7 h-7 rounded-lg bg-white flex items-center justify-center text-blue-700 shadow-sm">
-              <span className="text-[10px] font-bold">KES</span>
+            <span className="truncate pr-1">Collected revenue</span>
+            <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-lg bg-white flex items-center justify-center text-blue-700 shadow-sm shrink-0">
+              <span className="text-[9px] sm:text-[10px] font-bold">KES</span>
             </div>
           </div>
-          <div className="mt-3">
-            <div className="text-3xl font-extrabold tracking-tight text-[#17365f]">
+          <div className="mt-2 sm:mt-3">
+            <div className="text-xl sm:text-3xl font-extrabold tracking-tight text-[#17365f] truncate">
               {formatKsh(stats.totalRevenue)}
             </div>
-            <div className="flex items-center gap-2 mt-2 text-xs">
-              <span className="text-slate-600 text-[11px]">Paid sales collected today</span>
+            <div className="flex items-center gap-2 mt-1 sm:mt-2 text-xs">
+              <span className="text-slate-600 text-[10px] sm:text-[11px] truncate">Paid sales today</span>
             </div>
           </div>
         </div>
 
         {/* Card 2: Vehicles detected */}
-        <div className="dashboard-kpi dashboard-surface p-5 flex flex-col justify-between">
+        <div className="dashboard-kpi dashboard-surface p-3.5 sm:p-5 flex flex-col justify-between">
           <div className="flex items-center justify-between text-slate-500 text-xs">
-            <span>Vehicles detected</span>
-            <Car className="w-4 h-4 text-slate-400" />
+            <span className="truncate pr-1">Vehicles detected</span>
+            <Car className="w-4 h-4 text-slate-400 shrink-0" />
           </div>
-          <div className="mt-3">
-            <div className="text-3xl font-extrabold tracking-tight text-slate-900">
+          <div className="mt-2 sm:mt-3">
+            <div className="text-xl sm:text-3xl font-extrabold tracking-tight text-slate-900">
               {stats.vehiclesToday}
             </div>
-            <div className="flex items-center gap-2 mt-2 text-xs">
-              <span className="text-slate-400 text-[11px]">Detected today</span>
+            <div className="flex items-center gap-2 mt-1 sm:mt-2 text-xs">
+              <span className="text-slate-400 text-[10px] sm:text-[11px]">Detected today</span>
             </div>
           </div>
         </div>
 
         {/* Card 3: Completed sales */}
-        <div className="dashboard-kpi dashboard-surface p-5 flex flex-col justify-between">
+        <div className="dashboard-kpi dashboard-surface p-3.5 sm:p-5 flex flex-col justify-between">
           <div className="flex items-center justify-between text-slate-500 text-xs">
-            <span>Completed sales</span>
-            <Receipt className="w-4 h-4 text-slate-400" />
+            <span className="truncate pr-1">Completed sales</span>
+            <Receipt className="w-4 h-4 text-slate-400 shrink-0" />
           </div>
-          <div className="mt-3">
-            <div className="text-3xl font-extrabold tracking-tight text-slate-900">
+          <div className="mt-2 sm:mt-3">
+            <div className="text-xl sm:text-3xl font-extrabold tracking-tight text-slate-900">
               {stats.completedSales}
             </div>
-            <div className="flex items-center gap-2 mt-2 text-xs">
-              <span className="bg-emerald-50 text-emerald-700 font-bold text-[11px] px-2 py-0.5 rounded-md">
+            <div className="flex items-center gap-1.5 sm:gap-2 mt-1 sm:mt-2 text-xs flex-wrap">
+              <span className="bg-emerald-50 text-emerald-700 font-bold text-[10px] sm:text-[11px] px-1.5 py-0.5 rounded-md">
                 {stats.conversionRate}%
               </span>
-              <span className="text-slate-400 text-[11px]">arrival-to-sale conversion</span>
+              <span className="text-slate-400 text-[10px] sm:text-[11px] truncate">conversion</span>
             </div>
           </div>
         </div>
 
         {/* Card 4: Average ticket */}
-        <div className="dashboard-kpi dashboard-surface p-5 flex flex-col justify-between">
+        <div className="dashboard-kpi dashboard-surface p-3.5 sm:p-5 flex flex-col justify-between">
           <div className="flex items-center justify-between text-slate-500 text-xs">
-            <span>Average ticket</span>
-            <BarChart3 className="w-4 h-4 text-slate-400" />
+            <span className="truncate pr-1">Average ticket</span>
+            <BarChart3 className="w-4 h-4 text-slate-400 shrink-0" />
           </div>
-          <div className="mt-3">
-            <div className="text-3xl font-extrabold tracking-tight text-slate-900">
+          <div className="mt-2 sm:mt-3">
+            <div className="text-xl sm:text-3xl font-extrabold tracking-tight text-slate-900 truncate">
               {formatKsh(stats.averageTransaction)}
             </div>
-            <div className="flex items-center gap-2 mt-2 text-xs">
-              <span className="text-slate-400 text-[11px]">Per completed sale</span>
+            <div className="flex items-center gap-2 mt-1 sm:mt-2 text-xs">
+              <span className="text-slate-400 text-[10px] sm:text-[11px] truncate">Per completed sale</span>
             </div>
           </div>
         </div>
@@ -197,7 +197,7 @@ export const DashboardView: React.FC = () => {
             </div>
 
             {/* Recent vehicle captures */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3.5">
+            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-3.5">
               {captures.map((capture) => {
                 const classConfig = getVehicleClassConfig(capture.vehicleClass);
                 const ClassIcon = classConfig.icon;
@@ -411,8 +411,67 @@ export const DashboardView: React.FC = () => {
               </button>
             </div>
 
-            {/* Table */}
-            <div className="overflow-x-auto mt-2">
+            {/* Mobile Cards List (sm:hidden) */}
+            <div className="sm:hidden mt-3 space-y-2.5">
+              {visibleTransactions.map((tx) => (
+                <div
+                  key={tx.id}
+                  onClick={() => setSelectedReceipt(tx)}
+                  className="p-3 bg-slate-50/80 rounded-xl border border-slate-200/70 active:bg-slate-100 cursor-pointer space-y-2 transition-colors"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-7 h-7 rounded-lg bg-white border border-slate-200 flex items-center justify-center text-slate-600 shrink-0">
+                        <Car className="w-3.5 h-3.5" />
+                      </div>
+                      <div>
+                        <div className="font-bold text-slate-900 capitalize text-xs">
+                          {tx.vehicleType || 'Vehicle'}
+                        </div>
+                        <div className="text-[10px] text-slate-400 font-mono">
+                          {tx.receiptNumber ? `#${tx.receiptNumber}` : tx.id.slice(0, 8)}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="font-extrabold text-slate-900 font-mono text-xs">
+                        KSh {tx.total.toLocaleString()}
+                      </div>
+                      <span className="text-[10px] text-slate-400 font-mono">{tx.timestamp}</span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between pt-1 border-t border-slate-200/50 text-[10px]">
+                    <div className="flex flex-wrap gap-1">
+                      {tx.services.slice(0, 2).map((s, idx) => (
+                        <span
+                          key={idx}
+                          className="px-1.5 py-0.5 rounded bg-white text-slate-700 border border-slate-200/60 font-medium"
+                        >
+                          {s.name}
+                        </span>
+                      ))}
+                      {tx.services.length > 2 && (
+                        <span className="text-slate-400 font-medium">+{tx.services.length - 2}</span>
+                      )}
+                    </div>
+                    <span className="font-semibold text-slate-700 flex items-center gap-1">
+                      {tx.paymentMethod}
+                      <ArrowUpRight className="w-3 h-3 text-slate-400" />
+                    </span>
+                  </div>
+                </div>
+              ))}
+
+              {visibleTransactions.length === 0 && (
+                <div className="py-6 text-center text-xs text-slate-400">
+                  No sales recorded yet. Completed transactions will appear here.
+                </div>
+              )}
+            </div>
+
+            {/* Desktop Table (hidden sm:block) */}
+            <div className="hidden sm:block overflow-x-auto mt-2">
               <table className="w-full text-left text-xs">
                 <thead>
                   <tr className="border-b border-slate-100 text-slate-400 uppercase text-[10px] font-semibold tracking-wider">
@@ -542,50 +601,57 @@ export const DashboardView: React.FC = () => {
 
       {/* Capture preview */}
       {previewCapture && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-xs animate-in fade-in duration-150">
-          <div className="relative w-full max-w-lg bg-white rounded-2xl shadow-2xl overflow-hidden border border-slate-200">
-            <div className="flex items-center justify-between p-4 border-b border-slate-100 bg-slate-50">
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/75 backdrop-blur-xs animate-in fade-in duration-150"
+          onClick={() => setPreviewCapture(null)}
+        >
+          <div
+            className="relative w-full max-w-lg bg-white rounded-2xl shadow-2xl overflow-hidden border border-slate-200 max-h-[92vh] flex flex-col"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between p-3.5 sm:p-4 border-b border-slate-100 bg-slate-50 shrink-0">
               <div className="flex items-center gap-2">
                 <Camera className="w-4 h-4 text-blue-600" />
                 <h3 className="text-sm font-extrabold text-slate-900">
-                  Capture
+                  Vehicle Capture
                 </h3>
               </div>
               <button
                 onClick={() => setPreviewCapture(null)}
                 className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-200 transition-colors"
+                aria-label="Close capture modal"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            <div className="p-4">
-              <div className="w-full max-h-[360px] rounded-xl overflow-hidden bg-slate-950 flex items-center justify-center p-2">
+            <div className="p-4 overflow-y-auto">
+              <div className="w-full max-h-[300px] sm:max-h-[360px] rounded-xl overflow-hidden bg-slate-950 flex items-center justify-center p-2">
                 <img
                   src={previewCapture.imageUrl}
                   alt={String(previewCapture.vehicleClass)}
-                  className="max-h-[340px] w-auto object-contain rounded-lg"
+                  className="max-h-[280px] sm:max-h-[340px] w-auto object-contain rounded-lg"
                 />
               </div>
 
-              <div className="mt-4 grid grid-cols-2 gap-2.5 text-xs">
-                <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
+              <div className="mt-4 grid grid-cols-2 gap-2 text-xs">
+                <div className="p-2.5 sm:p-3 bg-slate-50 rounded-xl border border-slate-100">
                   <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Detected Class</span>
-                  <div className="text-base font-black text-slate-900 mt-0.5">
+                  <div className="text-sm sm:text-base font-black text-slate-900 mt-0.5">
                     {previewCapture.vehicleClass}
                   </div>
                 </div>
 
-                <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
+                <div className="p-2.5 sm:p-3 bg-slate-50 rounded-xl border border-slate-100">
                   <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Capture ID</span>
-                  <div className="text-sm font-bold text-slate-800 mt-0.5">
+                  <div className="text-xs sm:text-sm font-bold text-slate-800 mt-0.5 truncate">
                     {previewCapture.id}
                   </div>
                 </div>
 
-                <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
+                <div className="p-2.5 sm:p-3 bg-slate-50 rounded-xl border border-slate-100 col-span-2">
                   <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Captured At</span>
-                  <div className="text-sm font-bold text-slate-800 mt-0.5 truncate">
+                  <div className="text-xs font-bold text-slate-800 mt-0.5 truncate">
                     {new Date(previewCapture.timestamp).toLocaleString()}
                   </div>
                 </div>

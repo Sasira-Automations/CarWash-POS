@@ -49,19 +49,19 @@ export const AnalyticsView: React.FC = () => {
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
-            <div className="bg-white/80 border border-[#cfe0f4] p-1 rounded-lg flex items-center text-xs font-semibold">
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="bg-white/80 border border-[#cfe0f4] p-1 rounded-lg flex items-center text-xs font-semibold">
             {(['today', 'week', 'month'] as const).map((r) => (
               <button
                 key={r}
                 onClick={() => setReportRange(r)}
-                  className={`px-3 py-1.5 rounded-md capitalize transition-colors ${
+                className={`px-2.5 sm:px-3 py-1.5 rounded-md capitalize transition-colors text-xs ${
                   reportRange === r
                     ? 'bg-white text-blue-600 shadow-sm font-bold'
                     : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
-                {r === 'today' ? 'Today' : r === 'week' ? 'This Week' : 'This Month'}
+                {r === 'today' ? 'Today' : r === 'week' ? 'Week' : 'Month'}
               </button>
             ))}
           </div>
@@ -77,8 +77,8 @@ export const AnalyticsView: React.FC = () => {
       </div>
 
       {/* Conversion Funnel Banner */}
-      <div className="bg-white rounded-xl p-5 sm:p-6 border border-[#dfe7f1] shadow-[0_6px_20px_rgba(32,64,100,0.05)] space-y-5">
-        <div className="flex items-center justify-between">
+      <div className="bg-white rounded-xl p-4 sm:p-6 border border-[#dfe7f1] shadow-[0_6px_20px_rgba(32,64,100,0.05)] space-y-4 sm:space-y-5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
           <div>
             <h3 className="text-base font-bold text-slate-900">
               Vehicle-to-Sale Conversion Funnel
@@ -87,7 +87,7 @@ export const AnalyticsView: React.FC = () => {
               Entrance camera detections vs verified POS checkouts
             </p>
           </div>
-          <span className="text-sm font-extrabold text-[#1b5fad] bg-[#eaf3ff] px-3 py-2 rounded-lg border border-[#cfe0f4] whitespace-nowrap">
+          <span className="self-start sm:self-auto text-xs sm:text-sm font-extrabold text-[#1b5fad] bg-[#eaf3ff] px-3 py-1.5 sm:py-2 rounded-lg border border-[#cfe0f4] whitespace-nowrap">
             {stats.conversionRate}% Conversion
           </span>
         </div>

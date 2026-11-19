@@ -94,43 +94,43 @@ export const TransactionsView: React.FC = () => {
       </div>
 
       {/* Summary KPI Strip */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="bg-white rounded-2xl p-5 border border-slate-200/90 shadow-sm">
-          <div className="text-xs font-bold uppercase tracking-wider text-slate-400">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+        <div className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200/90 shadow-sm">
+          <div className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-slate-400">
             Recorded Filtered Revenue
           </div>
-          <div className="text-2xl font-extrabold text-emerald-600 mt-2">
+          <div className="text-xl sm:text-2xl font-extrabold text-emerald-600 mt-1 sm:mt-2">
             {settings.currency} {totalFilteredRevenue.toLocaleString()}
           </div>
-          <div className="text-[11px] text-slate-400 mt-1">From completed sales only</div>
+          <div className="text-[10px] sm:text-[11px] text-slate-400 mt-1">From completed sales only</div>
         </div>
 
-        <div className="bg-white rounded-2xl p-5 border border-slate-200/90 shadow-sm">
-          <div className="text-xs font-bold uppercase tracking-wider text-slate-400">
+        <div className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200/90 shadow-sm">
+          <div className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-slate-400">
             Completed Transactions
           </div>
-          <div className="text-2xl font-extrabold text-slate-900 mt-2">
+          <div className="text-xl sm:text-2xl font-extrabold text-slate-900 mt-1 sm:mt-2">
             {completedCount} Sales
           </div>
-          <div className="text-[11px] text-slate-400 mt-1">Avg ~{settings.currency} {completedCount > 0 ? Math.round(totalFilteredRevenue / completedCount) : 0}</div>
+          <div className="text-[10px] sm:text-[11px] text-slate-400 mt-1">Avg ~{settings.currency} {completedCount > 0 ? Math.round(totalFilteredRevenue / completedCount) : 0}</div>
         </div>
 
-        <div className="bg-white rounded-2xl p-5 border border-slate-200/90 shadow-sm">
-          <div className="text-xs font-bold uppercase tracking-wider text-slate-400">
+        <div className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200/90 shadow-sm">
+          <div className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-slate-400">
             Refunds / Adjustments
           </div>
-          <div className="text-2xl font-extrabold text-amber-600 mt-2">
+          <div className="text-xl sm:text-2xl font-extrabold text-amber-600 mt-1 sm:mt-2">
             {refundedCount}
           </div>
-          <div className="text-[11px] text-slate-400 mt-1">Reversals logged with audit note</div>
+          <div className="text-[10px] sm:text-[11px] text-slate-400 mt-1">Reversals logged with audit note</div>
         </div>
       </div>
 
       {/* Filter and Table Container */}
-      <div className="bg-white rounded-3xl p-6 border border-slate-200/90 shadow-sm space-y-5">
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+      <div className="bg-white rounded-3xl p-4 sm:p-6 border border-slate-200/90 shadow-sm space-y-4 sm:space-y-5">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 sm:gap-4">
           {/* Method filters */}
-          <div className="flex flex-wrap items-center gap-1.5 bg-slate-100/80 p-1 rounded-2xl text-xs font-semibold">
+          <div className="flex flex-wrap items-center gap-1 sm:gap-1.5 bg-slate-100/80 p-1 rounded-2xl text-xs font-semibold">
             {(['All', 'M-Pesa', 'Cash', 'Card'] as const).map((m) => (
               <button
                 key={m}
@@ -147,7 +147,7 @@ export const TransactionsView: React.FC = () => {
           </div>
 
           {/* Status filters */}
-          <div className="flex items-center gap-2">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value as any)}
@@ -173,8 +173,94 @@ export const TransactionsView: React.FC = () => {
           </div>
         </div>
 
-        {/* Table */}
-        <div className="overflow-x-auto">
+        {/* Mobile Cards View (md:hidden) */}
+        <div className="md:hidden space-y-3">
+          {filteredTransactions.map((tx) => (
+            <div
+              key={tx.id}
+              className="p-3.5 bg-slate-50/70 border border-slate-200/80 rounded-2xl space-y-2.5 transition-all hover:bg-slate-50"
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="font-mono font-bold text-blue-600 text-xs">
+                    {tx.receiptNumber}
+                  </span>
+                  <span
+                    className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                      tx.status === 'Completed'
+                        ? 'bg-emerald-100 text-emerald-800'
+                        : tx.status === 'Refunded'
+                        ? 'bg-amber-100 text-amber-800'
+                        : 'bg-rose-100 text-rose-800'
+                    }`}
+                  >
+                    {tx.status}
+                  </span>
+                </div>
+                <div className="font-extrabold text-slate-900 text-sm">
+                  {settings.currency} {tx.total.toLocaleString()}
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <span className="font-mono font-extrabold text-xs px-2.5 py-0.5 rounded-lg bg-amber-50 text-amber-900 border border-amber-300">
+                  {tx.vehiclePlate}
+                </span>
+                <span className="inline-flex items-center gap-1.5 font-semibold text-xs text-slate-700">
+                  {tx.paymentMethod === 'M-Pesa' && <Smartphone className="w-3.5 h-3.5 text-emerald-600" />}
+                  {tx.paymentMethod === 'Cash' && <Banknote className="w-3.5 h-3.5 text-blue-600" />}
+                  {tx.paymentMethod === 'Card' && <CreditCard className="w-3.5 h-3.5 text-indigo-600" />}
+                  {tx.paymentMethod}
+                </span>
+              </div>
+
+              <div className="text-xs text-slate-600 font-medium truncate">
+                {tx.services.map((s) => s.name).join(', ')}
+              </div>
+
+              {tx.mpesaRef && (
+                <div className="text-[11px] text-slate-500 font-mono">
+                  Ref: <span className="font-bold text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded">{tx.mpesaRef}</span>
+                </div>
+              )}
+
+              <div className="flex items-center justify-between pt-2 border-t border-slate-200/60 text-xs text-slate-400">
+                <span>{tx.timestamp}</span>
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={() => setSelectedReceipt(tx)}
+                    className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold bg-white border border-slate-200 text-blue-600 hover:bg-blue-50 transition-colors"
+                  >
+                    <Receipt className="w-3.5 h-3.5" />
+                    <span>Receipt</span>
+                  </button>
+                  {tx.status === 'Completed' && (
+                    <button
+                      onClick={() => {
+                        if (window.confirm(`Issue refund for ${tx.receiptNumber}?`)) {
+                          refundTransaction(tx.id);
+                        }
+                      }}
+                      className="p-1 rounded-lg text-slate-400 hover:text-amber-600 hover:bg-amber-50"
+                      title="Issue Refund"
+                    >
+                      <RotateCcw className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          ))}
+
+          {filteredTransactions.length === 0 && (
+            <div className="py-8 text-center text-xs text-slate-400">
+              No transactions match your search criteria.
+            </div>
+          )}
+        </div>
+
+        {/* Desktop Table (hidden md:block) */}
+        <div className="hidden md:block overflow-x-auto">
           <table className="w-full text-left text-xs">
             <thead>
               <tr className="border-b border-slate-200 text-slate-400 uppercase font-semibold text-[10px] tracking-wider">

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { CarFront, Droplets, Wallet, Settings, LogOut, CircleUserRound } from 'lucide-react';
+import { CarFront, Droplets, Wallet, Settings, LogOut, CircleUserRound, X } from 'lucide-react';
 import { useWashFlow } from '../../context/WashFlowContext';
 import { useAuth } from '../../context/AuthContext';
 
@@ -117,19 +117,29 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileOpen, setMobileOpen }) =
 
       {/* Outer Blue Frame Container */}
       <aside
-        className={`fixed lg:sticky top-0 h-dvh z-50 w-[270px] shrink-0 pl-3.5 pt-3.5 pb-3.5 pr-3.5 lg:pr-0 bg-[#195de4] flex flex-col transition-transform duration-300 ease-in-out select-none ${
+        className={`fixed lg:sticky top-0 h-dvh z-50 w-[275px] max-w-[85vw] shrink-0 pl-3.5 pt-3.5 pb-3.5 pr-3.5 lg:pr-0 bg-[#195de4] flex flex-col transition-transform duration-300 ease-in-out select-none ${
           mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
         }`}
       >
         {/* Inner White Rounded Card */}
         <div className="bg-white rounded-[26px] h-full min-h-0 flex flex-col justify-between overflow-hidden shadow-[12px_0_35px_-8px_rgba(25,93,228,0.2)] relative border border-white/50">
-          <div>
-            {/* Top Logo with Splash & Tagline */}
-            <div className="sidebar-logo px-4 flex items-center justify-center gap-2.5 text-[#17365f]">
-              <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#eaf3ff] text-[#1b5fad]">
-                <Droplets className="h-5 w-5" />
-              </span>
-              <span className="text-lg font-extrabold tracking-tight">WashFlow</span>
+          <div className="flex-1 min-h-0 overflow-y-auto flex flex-col">
+            {/* Top Logo with Splash & Tagline + Mobile Close */}
+            <div className="sidebar-logo px-4 flex items-center justify-between text-[#17365f]">
+              <div className="flex items-center gap-2.5">
+                <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#eaf3ff] text-[#1b5fad]">
+                  <Droplets className="h-5 w-5" />
+                </span>
+                <span className="text-lg font-extrabold tracking-tight">WashFlow</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setMobileOpen(false)}
+                className="lg:hidden p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
+                aria-label="Close menu"
+              >
+                <X className="w-5 h-5" />
+              </button>
             </div>
 
             {/* Navigation List */}

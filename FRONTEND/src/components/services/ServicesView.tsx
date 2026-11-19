@@ -125,12 +125,12 @@ export const ServicesView: React.FC = () => {
       </div>
 
       {/* Category Pills */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-1">
+      <div className="flex items-center gap-2 overflow-x-auto pb-1 -mx-3 px-3 sm:mx-0 sm:px-0">
         {categories.map((cat) => (
           <button
             key={cat}
             onClick={() => setActiveCategory(cat)}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+            className={`px-3.5 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap shrink-0 ${
               activeCategory === cat
                 ? 'bg-blue-600 text-white shadow-md shadow-blue-600/25'
                 : 'bg-white text-slate-600 border border-slate-200/90 hover:bg-slate-50'
@@ -220,10 +220,19 @@ export const ServicesView: React.FC = () => {
 
       {/* Add / Edit Service Modal */}
       {(isAddModalOpen || editingService) && (
-        <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-lg w-full shadow-2xl border border-slate-200 p-6 space-y-5 animate-in fade-in">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-              <h3 className="text-base font-extrabold text-slate-900">
+        <div
+          className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4"
+          onClick={() => {
+            setIsAddModalOpen(false);
+            setEditingService(null);
+          }}
+        >
+          <div
+            className="bg-white rounded-3xl max-w-lg w-full max-h-[92vh] flex flex-col shadow-2xl border border-slate-200 overflow-hidden animate-in fade-in"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between p-4 sm:p-5 border-b border-slate-100 bg-slate-50/70 shrink-0">
+              <h3 className="text-sm sm:text-base font-extrabold text-slate-900">
                 {editingService ? 'Edit Service & Pricing' : 'Add New Service Package'}
               </h3>
               <button
@@ -231,13 +240,14 @@ export const ServicesView: React.FC = () => {
                   setIsAddModalOpen(false);
                   setEditingService(null);
                 }}
-                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-800"
+                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-800 transition-colors"
+                aria-label="Close service modal"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <form onSubmit={editingService ? handleSaveEdit : handleSaveAdd} className="space-y-4">
+            <form onSubmit={editingService ? handleSaveEdit : handleSaveAdd} className="p-4 sm:p-6 space-y-4 overflow-y-auto">
               <div>
                 <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
                   Service Name *
@@ -252,7 +262,7 @@ export const ServicesView: React.FC = () => {
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
                     Category

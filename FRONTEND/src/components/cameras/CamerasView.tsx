@@ -86,12 +86,12 @@ export const CamerasView: React.FC = () => {
               </div>
 
               {/* Activity count */}
-              <div className="mt-4 pt-4 border-t border-slate-100 flex items-center justify-between">
+              <div className="mt-4 pt-4 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2">
                 <div>
                   <span className="text-[10px] text-slate-400 font-medium block">
                     Today's Detections
                   </span>
-                  <span className="text-xl font-extrabold text-slate-900">
+                  <span className="text-lg sm:text-xl font-extrabold text-slate-900">
                     {camera.todayDetections}
                   </span>
                 </div>
@@ -105,7 +105,7 @@ export const CamerasView: React.FC = () => {
                       }`
                     );
                   }}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-colors ${
+                  className={`px-3 py-2 rounded-xl text-xs font-bold transition-colors ${
                     isOnline
                       ? 'bg-slate-100 text-slate-700 hover:bg-rose-50 hover:text-rose-700'
                       : 'bg-emerald-600 text-white hover:bg-emerald-700'

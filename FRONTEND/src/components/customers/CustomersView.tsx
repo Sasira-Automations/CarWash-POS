@@ -150,14 +150,14 @@ export const CustomersView: React.FC = () => {
 
       {isAddDialogOpen && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 p-4"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 backdrop-blur-xs p-3 sm:p-4"
           onMouseDown={(event) => {
             if (event.target === event.currentTarget) setIsAddDialogOpen(false);
           }}
         >
           <form
             onSubmit={handleAddCustomer}
-            className="w-full max-w-md rounded-2xl bg-white p-5 shadow-2xl"
+            className="w-full max-w-md rounded-2xl bg-white p-4 sm:p-5 shadow-2xl max-h-[92vh] overflow-y-auto"
             aria-labelledby="add-customer-title"
           >
             <div className="mb-5 flex items-start justify-between gap-4">

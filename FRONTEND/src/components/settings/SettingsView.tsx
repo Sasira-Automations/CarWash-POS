@@ -211,19 +211,19 @@ export const SettingsView: React.FC = () => {
               </div>
 
               {/* Editable Name Input */}
-              <div className="flex items-center gap-2">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
                 <input
                   type="text"
                   placeholder="Owner Name"
                   value={ownerFullName}
                   onChange={(e) => setOwnerFullName(e.target.value)}
-                  className="px-3 py-1.5 text-xs font-semibold rounded-xl border border-slate-300 focus:outline-none focus:border-blue-600"
+                  className="px-3 py-2 text-xs font-semibold rounded-xl border border-slate-300 focus:outline-none focus:border-blue-600"
                 />
                 <button
                   type="button"
                   onClick={handleUpdateName}
                   disabled={isSavingName || !ownerFullName.trim() || ownerFullName === user?.fullName}
-                  className="px-3 py-1.5 text-xs font-bold rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 disabled:opacity-40 transition-colors"
+                  className="px-3 py-2 text-xs font-bold rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 disabled:opacity-40 transition-colors"
                 >
                   {isSavingName ? 'Saving...' : 'Update Name'}
                 </button>
@@ -296,7 +296,7 @@ export const SettingsView: React.FC = () => {
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
                 Branch / Location Name
@@ -341,7 +341,7 @@ export const SettingsView: React.FC = () => {
             <h3 className="text-sm font-bold text-slate-900">Currency & Payment Gateways</h3>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
                 Currency Symbol

@@ -4,6 +4,7 @@ import { WashFlowProvider, useWashFlow } from './context/WashFlowContext';
 import { AuthPage } from './components/auth/AuthPage';
 import { Sidebar } from './components/layout/Sidebar';
 import { TopNavbar } from './components/layout/TopNavbar';
+import { BottomNav } from './components/layout/BottomNav';
 import { DashboardView } from './components/dashboard/DashboardView';
 import { VehicleMonitoringView } from './components/monitoring/VehicleMonitoringView';
 import { TransactionsView } from './components/transactions/TransactionsView';
@@ -40,7 +41,7 @@ const WashFlowMainApp: React.FC = () => {
       <div className="flex-1 flex flex-col min-w-0 min-h-screen">
         <TopNavbar onMenuToggle={() => setMobileSidebarOpen(true)} />
 
-        <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-[1600px] w-full mx-auto">
+        <main className="flex-1 p-3 sm:p-6 lg:p-8 max-w-[1600px] w-full mx-auto pb-24 lg:pb-8">
           {activeTab === 'dashboard' && <DashboardView />}
           {activeTab === 'monitoring' && <VehicleMonitoringView />}
           {activeTab === 'transactions' && <TransactionsView />}
@@ -52,6 +53,9 @@ const WashFlowMainApp: React.FC = () => {
           {activeTab === 'settings' && <SettingsView />}
         </main>
       </div>
+
+      {/* Mobile Bottom Navigation Bar */}
+      <BottomNav onMenuToggle={() => setMobileSidebarOpen(true)} />
 
       {/* Thermal Receipt Modal */}
       {selectedReceipt && (
