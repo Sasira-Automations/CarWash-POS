@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Droplets,
   Mail,
@@ -9,16 +9,28 @@ import {
   Building2,
   MapPin,
   ArrowRight,
+  ArrowLeft,
   CheckCircle2,
   AlertCircle,
   Loader2,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
-export const AuthPage: React.FC = () => {
-  const { signIn, signInWithGoogle, signUp, isConfigured } = useAuth();
+type AuthMode = 'signin' | 'signup' | 'forgot' | 'reset';
 
-  const [mode, setMode] = useState<'signin' | 'signup'>('signin');
+export const AuthPage: React.FC = () => {
+  const {
+    signIn,
+    signInWithGoogle,
+    signUp,
+    isConfigured,
+    isPasswordRecovery,
+    sendPasswordResetEmail,
+    updateUserPassword,
+    clearPasswordRecovery
+  } = useAuth();
+
+  const [mode, setMode] = useState<AuthMode>(() => (isPasswordRecovery ? 'reset' : 'signin'));
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -32,12 +44,20 @@ export const AuthPage: React.FC = () => {
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  useEffect(() => {
+    if (isPasswordRecovery) {
+      setMode('reset');
+      setErrorMsg(null);
+      setSuccessMsg(null);
+    }
+  }, [isPasswordRecovery]);
+
   const resetMessages = () => {
     setErrorMsg(null);
     setSuccessMsg(null);
   };
 
-  const handleTabSwitch = (newMode: 'signin' | 'signup') => {
+  const handleTabSwitch = (newMode: AuthMode) => {
     setMode(newMode);
     resetMessages();
   };
@@ -46,6 +66,57 @@ export const AuthPage: React.FC = () => {
     e.preventDefault();
     resetMessages();
 
+    // 1. Forgot password flow
+    if (mode === 'forgot') {
+      if (!email.trim()) {
+        setErrorMsg('Please enter your email address.');
+        return;
+      }
+      setIsSubmitting(true);
+      try {
+        const result = await sendPasswordResetEmail(email.trim());
+        if (result.error) {
+          setErrorMsg(result.error);
+        } else {
+          setSuccessMsg(
+            `Password reset link sent! Check your inbox at ${email.trim()} (and spam folder) for instructions.`
+          );
+        }
+      } finally {
+        setIsSubmitting(false);
+      }
+      return;
+    }
+
+    // 2. Reset password flow (after clicking email recovery link)
+    if (mode === 'reset') {
+      if (!password || password.length < 6) {
+        setErrorMsg('Password must be at least 6 characters long.');
+        return;
+      }
+      if (password !== confirmPassword) {
+        setErrorMsg('Passwords do not match. Please verify your new password.');
+        return;
+      }
+      setIsSubmitting(true);
+      try {
+        const result = await updateUserPassword(password);
+        if (result.error) {
+          setErrorMsg(result.error);
+        } else {
+          setSuccessMsg('Your password has been reset successfully! You can now sign in.');
+          setPassword('');
+          setConfirmPassword('');
+          clearPasswordRecovery();
+          setMode('signin');
+        }
+      } finally {
+        setIsSubmitting(false);
+      }
+      return;
+    }
+
+    // 3. Regular Sign In / Sign Up
     if (!email.trim() || !password) {
       setErrorMsg('Please enter both email and password.');
       return;
@@ -166,40 +237,58 @@ export const AuthPage: React.FC = () => {
             {/* Header Titles */}
             <div className="mb-6">
               <h2 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">
-                {mode === 'signin' ? 'Welcome back' : 'Create your account'}
+                {mode === 'signin' && 'Welcome back'}
+                {mode === 'signup' && 'Create your account'}
+                {mode === 'forgot' && 'Reset your password'}
+                {mode === 'reset' && 'Create new password'}
               </h2>
               <p className="mt-1 text-xs text-slate-500">
-                {mode === 'signin'
-                  ? 'Sign in to continue to your dashboard.'
-                  : 'Create an account to set up your workspace.'}
+                {mode === 'signin' && 'Sign in to continue to your dashboard.'}
+                {mode === 'signup' && 'Create an account to set up your workspace.'}
+                {mode === 'forgot' && "Enter your registered email and we'll send you a recovery link."}
+                {mode === 'reset' && 'Choose a secure new password for your account.'}
               </p>
             </div>
 
-            {/* Segmented Mode Switcher */}
-            <div className="mb-6 p-1 bg-slate-100 rounded-xl flex items-center gap-1 border border-slate-200/60 max-w-sm">
+            {/* Segmented Mode Switcher or Back Button */}
+            {mode === 'forgot' || mode === 'reset' ? (
               <button
                 type="button"
-                onClick={() => handleTabSwitch('signin')}
-                className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${
-                  mode === 'signin'
-                    ? 'bg-white text-slate-900 shadow-sm'
-                    : 'text-slate-600 hover:text-slate-900'
-                }`}
+                onClick={() => {
+                  if (mode === 'reset') clearPasswordRecovery();
+                  handleTabSwitch('signin');
+                }}
+                className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-600 hover:text-slate-900 mb-6 group transition-colors"
               >
-                Sign In
+                <ArrowLeft className="w-4 h-4 text-slate-400 group-hover:text-slate-700 group-hover:-translate-x-0.5 transition-transform" />
+                <span>Back to Sign In</span>
               </button>
-              <button
-                type="button"
-                onClick={() => handleTabSwitch('signup')}
-                className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${
-                  mode === 'signup'
-                    ? 'bg-white text-slate-900 shadow-sm'
-                    : 'text-slate-600 hover:text-slate-900'
-                }`}
-              >
-                Sign Up
-              </button>
-            </div>
+            ) : (
+              <div className="mb-6 p-1 bg-slate-100 rounded-xl flex items-center gap-1 border border-slate-200/60 max-w-sm">
+                <button
+                  type="button"
+                  onClick={() => handleTabSwitch('signin')}
+                  className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${
+                    mode === 'signin'
+                      ? 'bg-white text-slate-900 shadow-sm'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  Sign In
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleTabSwitch('signup')}
+                  className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${
+                    mode === 'signup'
+                      ? 'bg-white text-slate-900 shadow-sm'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  Sign Up
+                </button>
+              </div>
+            )}
 
             {/* Error Message */}
             {errorMsg && (
@@ -241,7 +330,7 @@ export const AuthPage: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* Car Wash Business / Branch Name */}
+                  {/* Car Wash Business Name */}
                   <div>
                     <label className="block text-xs font-bold text-slate-700 mb-1.5">
                       Business Name
@@ -301,65 +390,78 @@ export const AuthPage: React.FC = () => {
                 </>
               )}
 
-              {/* Email */}
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                  Email Address
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                    <Mail className="w-4 h-4" />
-                  </div>
-                  <input
-                    type="email"
-                    required
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="you@example.com"
-                    className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition-all font-medium"
-                  />
-                </div>
-              </div>
-
-              {/* Password */}
-              <div>
-                <div className="flex items-center justify-between mb-1.5">
-                  <label className="block text-xs font-bold text-slate-700">
-                    Password
-                  </label>
-                  {mode === 'signin' && (
-                    <span className="text-[11px] text-slate-400">
-                      Minimum 6 characters
-                    </span>
-                  )}
-                </div>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                    <Lock className="w-4 h-4" />
-                  </div>
-                  <input
-                    type={showPassword ? 'text' : 'password'}
-                    required
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="••••••••"
-                    className="w-full pl-10 pr-10 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition-all font-medium"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600 transition-colors"
-                  >
-                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                  </button>
-                </div>
-              </div>
-
-              {/* Confirm Password (Sign Up only) */}
-              {mode === 'signup' && (
+              {/* Email (Shown for signin, signup, forgot) */}
+              {mode !== 'reset' && (
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                    Confirm Password
+                    Email Address
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                      <Mail className="w-4 h-4" />
+                    </div>
+                    <input
+                      type="email"
+                      required
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="you@example.com"
+                      className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition-all font-medium"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* Password (Shown for signin, signup, reset) */}
+              {mode !== 'forgot' && (
+                <div>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="block text-xs font-bold text-slate-700">
+                      {mode === 'reset' ? 'New Password' : 'Password'}
+                    </label>
+                    {mode === 'signin' && (
+                      <button
+                        type="button"
+                        onClick={() => handleTabSwitch('forgot')}
+                        className="text-[11px] font-semibold text-blue-600 hover:text-blue-800 hover:underline transition-colors"
+                      >
+                        Forgot password?
+                      </button>
+                    )}
+                    {mode !== 'signin' && (
+                      <span className="text-[11px] text-slate-400">
+                        Minimum 6 characters
+                      </span>
+                    )}
+                  </div>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                      <Lock className="w-4 h-4" />
+                    </div>
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      required
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="••••••••"
+                      className="w-full pl-10 pr-10 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition-all font-medium"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600 transition-colors"
+                    >
+                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Confirm Password (Sign Up & Reset Password) */}
+              {(mode === 'signup' || mode === 'reset') && (
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                    {mode === 'reset' ? 'Confirm New Password' : 'Confirm Password'}
                   </label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
@@ -386,11 +488,21 @@ export const AuthPage: React.FC = () => {
                 {isSubmitting ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin" />
-                    <span>{mode === 'signin' ? 'Authenticating...' : 'Creating Account...'}</span>
+                    <span>
+                      {mode === 'signin' && 'Authenticating...'}
+                      {mode === 'signup' && 'Creating Account...'}
+                      {mode === 'forgot' && 'Sending Reset Link...'}
+                      {mode === 'reset' && 'Updating Password...'}
+                    </span>
                   </>
                 ) : (
                   <>
-                    <span>{mode === 'signin' ? 'Sign in' : 'Create account'}</span>
+                    <span>
+                      {mode === 'signin' && 'Sign in'}
+                      {mode === 'signup' && 'Create account'}
+                      {mode === 'forgot' && 'Send Reset Link'}
+                      {mode === 'reset' && 'Update Password'}
+                    </span>
                     <ArrowRight className="w-4 h-4" />
                   </>
                 )}
@@ -425,7 +537,7 @@ export const AuthPage: React.FC = () => {
 
           {/* Bottom Switcher Footer */}
           <div className="pt-6 mt-6 border-t border-slate-100 text-center text-xs text-slate-500">
-            {mode === 'signin' ? (
+            {mode === 'signin' && (
               <p>
                 New to WashFlow?{' '}
                 <button
@@ -436,7 +548,8 @@ export const AuthPage: React.FC = () => {
                   Create one now
                 </button>
               </p>
-            ) : (
+            )}
+            {mode === 'signup' && (
               <p>
                 Already have an account?{' '}
                 <button
@@ -445,6 +558,33 @@ export const AuthPage: React.FC = () => {
                   className="font-bold text-blue-600 hover:text-blue-800 transition-colors"
                 >
                   Sign in here
+                </button>
+              </p>
+            )}
+            {mode === 'forgot' && (
+              <p>
+                Remember your password?{' '}
+                <button
+                  type="button"
+                  onClick={() => handleTabSwitch('signin')}
+                  className="font-bold text-blue-600 hover:text-blue-800 transition-colors"
+                >
+                  Sign in here
+                </button>
+              </p>
+            )}
+            {mode === 'reset' && (
+              <p>
+                Need to sign in instead?{' '}
+                <button
+                  type="button"
+                  onClick={() => {
+                    clearPasswordRecovery();
+                    handleTabSwitch('signin');
+                  }}
+                  className="font-bold text-blue-600 hover:text-blue-800 transition-colors"
+                >
+                  Back to sign in
                 </button>
               </p>
             )}

@@ -31,6 +31,7 @@ interface AuthContextType {
   session: Session | null;
   isLoading: boolean;
   isConfigured: boolean;
+  isPasswordRecovery: boolean;
   signIn: (email: string, password: string) => Promise<AuthResponse>;
   signInWithGoogle: () => Promise<AuthResponse>;
   signUp: (params: SignUpParams) => Promise<AuthResponse>;
@@ -38,6 +39,9 @@ interface AuthContextType {
   uploadAvatar: (file: File) => Promise<{ error: string | null; url?: string }>;
   removeAvatar: () => Promise<{ error: string | null }>;
   updateProfile: (updates: { fullName?: string; businessName?: string; branchName?: string; location?: string }) => Promise<{ error: string | null }>;
+  sendPasswordResetEmail: (email: string) => Promise<{ error: string | null }>;
+  updateUserPassword: (password: string) => Promise<{ error: string | null }>;
+  clearPasswordRecovery: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -59,6 +63,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<OwnerUser | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isPasswordRecovery, setIsPasswordRecovery] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      return (
+        window.location.hash.includes('type=recovery') ||
+        window.location.search.includes('type=recovery')
+      );
+    }
+    return false;
+  });
 
   useEffect(() => {
     if (!isConfigured) {
@@ -81,9 +94,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // 2. Realtime auth state listener
     const {
       data: { subscription }
-    } = supabase.auth.onAuthStateChange((_event, currentSession) => {
+    } = supabase.auth.onAuthStateChange((event, currentSession) => {
       setSession(currentSession);
       setUser(formatOwnerUser(currentSession?.user || null));
+      if (event === 'PASSWORD_RECOVERY') {
+        setIsPasswordRecovery(true);
+      }
       setIsLoading(false);
     });
 
@@ -352,6 +368,52 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const sendPasswordResetEmail = async (emailToReset: string): Promise<{ error: string | null }> => {
+    if (!isConfigured) {
+      return { error: 'Authentication is unavailable. Please contact the administrator.' };
+    }
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(emailToReset.trim(), {
+        redirectTo: window.location.origin
+      });
+      if (error) {
+        return { error: error.message };
+      }
+      return { error: null };
+    } catch (err: any) {
+      return { error: err.message || 'Failed to send password reset email.' };
+    }
+  };
+
+  const updateUserPassword = async (newPassword: string): Promise<{ error: string | null }> => {
+    if (!isConfigured) {
+      return { error: 'Authentication is unavailable. Please contact the administrator.' };
+    }
+    try {
+      const { error } = await supabase.auth.updateUser({
+        password: newPassword
+      });
+      if (error) {
+        return { error: error.message };
+      }
+      setIsPasswordRecovery(false);
+      // Clean up hash in URL if present
+      if (typeof window !== 'undefined' && window.history) {
+        window.history.replaceState(null, '', window.location.pathname);
+      }
+      return { error: null };
+    } catch (err: any) {
+      return { error: err.message || 'Failed to update password.' };
+    }
+  };
+
+  const clearPasswordRecovery = () => {
+    setIsPasswordRecovery(false);
+    if (typeof window !== 'undefined' && window.history) {
+      window.history.replaceState(null, '', window.location.pathname);
+    }
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -359,13 +421,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         session,
         isLoading,
         isConfigured,
+        isPasswordRecovery,
         signIn,
         signInWithGoogle,
         signUp,
         signOut,
         uploadAvatar,
         removeAvatar,
-        updateProfile
+        updateProfile,
+        sendPasswordResetEmail,
+        updateUserPassword,
+        clearPasswordRecovery
       }}
     >
       {children}

@@ -65,7 +65,7 @@ const WashFlowMainApp: React.FC = () => {
 };
 
 const AppContent: React.FC = () => {
-  const { user, isLoading } = useAuth();
+  const { user, isLoading, isPasswordRecovery } = useAuth();
 
   if (isLoading) {
     return (
@@ -83,7 +83,7 @@ const AppContent: React.FC = () => {
     );
   }
 
-  if (!user) {
+  if (!user || isPasswordRecovery) {
     return <AuthPage />;
   }
 
