@@ -13,6 +13,7 @@ import { CustomersView } from './components/customers/CustomersView';
 import { AnalyticsView } from './components/analytics/AnalyticsView';
 import { CamerasView } from './components/cameras/CamerasView';
 import { SettingsView } from './components/settings/SettingsView';
+import { AuditLogsView } from './components/settings/AuditLogsView';
 import { ExpensesView } from './components/expenses/ExpensesView';
 import { ReceiptModal } from './components/modals/ReceiptModal';
 import { CheckCircle2, Droplets, Loader2 } from 'lucide-react';
@@ -51,6 +52,7 @@ const WashFlowMainApp: React.FC = () => {
           {activeTab === 'expenses' && <ExpensesView />}
           {activeTab === 'cameras' && <CamerasView />}
           {activeTab === 'settings' && <SettingsView />}
+          {activeTab === 'audit' && <AuditLogsView />}
         </main>
       </div>
 
@@ -69,7 +71,7 @@ const WashFlowMainApp: React.FC = () => {
 };
 
 const AppContent: React.FC = () => {
-  const { user, isLoading, isPasswordRecovery } = useAuth();
+  const { user, isLoading, isPasswordRecovery, isMfaPending } = useAuth();
 
   if (isLoading) {
     return (
@@ -87,7 +89,8 @@ const AppContent: React.FC = () => {
     );
   }
 
-  if (!user || isPasswordRecovery) {
+  // Enforce authentication: show AuthPage if unauthenticated, resetting password, or awaiting 2FA verification
+  if (!user || isPasswordRecovery || isMfaPending) {
     return <AuthPage />;
   }
 

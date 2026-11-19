@@ -141,3 +141,110 @@ BEGIN
     END IF;
 END $$;
 
+-- ========================================================
+-- 6. AUDIT LOGGING SCHEMA & POLICIES
+-- Tracks authentication, financial, and operational events
+-- ========================================================
+
+CREATE TABLE IF NOT EXISTS public.audit_logs (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID,
+    user_email TEXT,
+    action TEXT NOT NULL,
+    category TEXT NOT NULL CHECK (
+        category IN ('auth', 'security', 'pos', 'services', 'expenses', 'settings', 'operations')
+    ),
+    details JSONB DEFAULT '{}'::jsonb,
+    ip_address TEXT,
+    user_agent TEXT,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- Optimized indexes for fast audit log search & timeline filtering
+CREATE INDEX IF NOT EXISTS idx_audit_logs_created_at
+ON public.audit_logs (created_at DESC);
+
+CREATE INDEX IF NOT EXISTS idx_audit_logs_category
+ON public.audit_logs (category);
+
+CREATE INDEX IF NOT EXISTS idx_audit_logs_action
+ON public.audit_logs (action);
+
+CREATE INDEX IF NOT EXISTS idx_audit_logs_user_email
+ON public.audit_logs (user_email);
+
+-- Enable Row Level Security (RLS) on audit_logs
+ALTER TABLE public.audit_logs ENABLE ROW LEVEL SECURITY;
+
+-- 1. Allow authenticated staff & dashboard users to insert audit logs
+DO $$
+BEGIN
+    DROP POLICY IF EXISTS "Allow log insert access" ON public.audit_logs;
+    DROP POLICY IF EXISTS "Allow authenticated log insert" ON public.audit_logs;
+    CREATE POLICY "Allow authenticated log insert"
+    ON public.audit_logs
+    FOR INSERT
+    TO authenticated
+    WITH CHECK (true);
+END $$;
+
+-- 2. Allow anon clients to record pre-auth security events (failed login, rate limit lockout)
+DO $$
+BEGIN
+    DROP POLICY IF EXISTS "Allow anon auth security log insert" ON public.audit_logs;
+    CREATE POLICY "Allow anon auth security log insert"
+    ON public.audit_logs
+    FOR INSERT
+    TO anon
+    WITH CHECK (category IN ('auth', 'security'));
+END $$;
+
+-- 3. Restrict reading audit logs strictly to authenticated users (protect sensitive audit logs from public)
+DO $$
+BEGIN
+    DROP POLICY IF EXISTS "Allow log read access" ON public.audit_logs;
+    DROP POLICY IF EXISTS "Allow authenticated log read access" ON public.audit_logs;
+    CREATE POLICY "Allow authenticated log read access"
+    ON public.audit_logs
+    FOR SELECT
+    TO authenticated
+    USING (true);
+END $$;
+
+-- 4. Audit Log Immutability:
+-- No UPDATE or DELETE policies are granted, ensuring audit trails are strictly append-only.
+
+-- Enable Realtime publication for audit_logs
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_publication_tables 
+        WHERE pubname = 'supabase_realtime' AND tablename = 'audit_logs'
+    ) THEN
+        ALTER PUBLICATION supabase_realtime ADD TABLE public.audit_logs;
+    END IF;
+END $$;
+
+-- ========================================================
+-- 7. SECURITY, RATE LIMITING & PASSWORD HASHING NOTES
+-- ========================================================
+-- PASSWORD HASHING:
+-- Supabase Auth automatically encrypts and hashes all passwords 
+-- using the industry-standard bcrypt algorithm (cost factor 10) 
+-- via pgcrypto / GoTrue before saving into auth.users.encrypted_password.
+-- Passwords are never stored or transmitted in plain text.
+--
+-- TWO-FACTOR AUTHENTICATION (2FA / MFA):
+-- Supabase Auth native MFA (TOTP) stores factors in auth.mfa_factors
+-- and challenges in auth.mfa_challenges. Assurance levels:
+--   aal1: Standard password or OAuth login
+--   aal2: Verified with 2FA TOTP Authenticator (Google Authenticator, Authy, etc.)
+--
+-- RATE LIMITING:
+-- Server-side brute force rate limiting is enforced by Supabase GoTrue Auth:
+--   - Default: 30 requests per minute per IP on /auth/v1/token (password login)
+--   - Configurable in Supabase Dashboard -> Authentication -> Rate Limits
+-- Application-level rate limiting locks attempts after 5 consecutive failures
+-- with exponential or 5-minute cooldown.
+
+

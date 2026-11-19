@@ -17,6 +17,7 @@ import {
   resolveDetectionImage
 } from '../services/vehicleDetectionService';
 import { useAuth } from './AuthContext';
+import { logAuditEvent } from '../services/auditLogService';
 
 interface WashFlowContextType {
   // Navigation
@@ -193,19 +194,27 @@ export const WashFlowProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   }, []);
 
   const correctPlateNumber = (detectionId: string, newPlate: string) => {
+    const formatted = newPlate.toUpperCase().trim();
     setDetections((prev) =>
       prev.map((det) =>
         det.id === detectionId
           ? {
               ...det,
-              plateNumber: newPlate.toUpperCase().trim(),
+              plateNumber: formatted,
               status: 'confirmed',
               manualCorrection: `Corrected from ${det.plateNumber}`
             }
           : det
       )
     );
-    showToast(`Plate updated to ${newPlate.toUpperCase().trim()}`);
+    showToast(`Plate updated to ${formatted}`);
+    logAuditEvent({
+      action: 'VEHICLE_PLATE_CORRECTED',
+      category: 'operations',
+      details: { detectionId, newPlate: formatted },
+      userEmail: user?.email,
+      userId: user?.id,
+    });
   };
 
   const refundTransaction = (txId: string) => {
@@ -213,6 +222,13 @@ export const WashFlowProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       prev.map((t) => (t.id === txId ? { ...t, status: 'Refunded' } : t))
     );
     showToast(`Transaction ${txId} marked as Refunded`);
+    logAuditEvent({
+      action: 'TRANSACTION_REFUNDED',
+      category: 'pos',
+      details: { transactionId: txId },
+      userEmail: user?.email,
+      userId: user?.id,
+    });
   };
 
   const cancelTransaction = (txId: string) => {
@@ -220,6 +236,13 @@ export const WashFlowProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       prev.map((t) => (t.id === txId ? { ...t, status: 'Cancelled' } : t))
     );
     showToast(`Transaction ${txId} marked as Cancelled`);
+    logAuditEvent({
+      action: 'TRANSACTION_CANCELLED',
+      category: 'pos',
+      details: { transactionId: txId },
+      userEmail: user?.email,
+      userId: user?.id,
+    });
   };
 
   const addService = (newService: Omit<ServiceItem, 'id'>) => {
@@ -229,6 +252,13 @@ export const WashFlowProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     };
     setServices((prev) => [...prev, srv]);
     showToast(`Added service: ${srv.name}`);
+    logAuditEvent({
+      action: 'SERVICE_CREATED',
+      category: 'services',
+      details: { name: srv.name, price: srv.price, category: srv.category },
+      userEmail: user?.email,
+      userId: user?.id,
+    });
   };
 
   const updateService = (id: string, updates: Partial<ServiceItem>) => {
@@ -236,6 +266,13 @@ export const WashFlowProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       prev.map((s) => (s.id === id ? { ...s, ...updates } : s))
     );
     showToast(`Service updated`);
+    logAuditEvent({
+      action: 'SERVICE_UPDATED',
+      category: 'services',
+      details: { serviceId: id, updates },
+      userEmail: user?.email,
+      userId: user?.id,
+    });
   };
 
   const toggleServiceActive = (id: string) => {
@@ -255,25 +292,48 @@ export const WashFlowProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   };
 
   const addExpense = (expense: Omit<ExpenseRecord, 'id'>) => {
-    setExpenses((prev) => [{ ...expense, id: `expense-${Date.now()}` }, ...prev]);
+    const newRecord: ExpenseRecord = { ...expense, id: `expense-${Date.now()}` };
+    setExpenses((prev) => [newRecord, ...prev]);
     showToast('Expense recorded');
+    logAuditEvent({
+      action: 'EXPENSE_RECORDED',
+      category: 'expenses',
+      details: { description: newRecord.description, amount: newRecord.amount, category: newRecord.category },
+      userEmail: user?.email,
+      userId: user?.id,
+    });
   };
 
   const addCustomer = (customer: Pick<Customer, 'name' | 'phone' | 'plateNumber' | 'preferredService'>) => {
-    setCustomers((prev) => [{
+    const newCust: Customer = {
       ...customer,
       id: `customer-${Date.now()}`,
       totalVisits: 0,
       totalSpent: 0,
       lastVisit: 'No visits yet',
       tier: 'Regular'
-    }, ...prev]);
+    };
+    setCustomers((prev) => [newCust, ...prev]);
     showToast(`Customer added: ${customer.name}`);
+    logAuditEvent({
+      action: 'CUSTOMER_CREATED',
+      category: 'operations',
+      details: { name: newCust.name, phone: newCust.phone, plate: newCust.plateNumber },
+      userEmail: user?.email,
+      userId: user?.id,
+    });
   };
 
   const updateSettings = (newSettings: Partial<BusinessSettings>) => {
     setSettings((prev) => ({ ...prev, ...newSettings }));
     showToast('Settings updated successfully');
+    logAuditEvent({
+      action: 'SETTINGS_UPDATED',
+      category: 'settings',
+      details: newSettings,
+      userEmail: user?.email,
+      userId: user?.id,
+    });
   };
 
   const stats = useMemo(() => {

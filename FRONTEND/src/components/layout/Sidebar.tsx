@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { CarFront, Droplets, Wallet, Settings, LogOut, CircleUserRound, X } from 'lucide-react';
+import { CarFront, Droplets, Wallet, Settings, LogOut, CircleUserRound, X, FileText } from 'lucide-react';
 import { useWashFlow } from '../../context/WashFlowContext';
 import { useAuth } from '../../context/AuthContext';
 
@@ -225,6 +225,18 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileOpen, setMobileOpen }) =
                 >
                   <Settings className="h-4 w-4 text-slate-500" />
                   Settings
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setActiveTab('audit');
+                    setProfileMenuOpen(false);
+                    setMobileOpen(false);
+                  }}
+                  className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-slate-50"
+                >
+                  <FileText className="h-4 w-4 text-slate-500" />
+                  Audit Logs
                 </button>
                 <button
                   type="button"

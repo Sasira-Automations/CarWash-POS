@@ -8,6 +8,7 @@ export type ActiveTab =
   | 'expenses'
   | 'cameras'
   | 'settings'
+  | 'audit'
   | 'help';
 
 export type PaymentMethod = 'M-Pesa' | 'Cash' | 'Card';
@@ -135,3 +136,25 @@ export interface BusinessSettings {
   minConfidenceThreshold: number;
   autoLinkDetections: boolean;
 }
+
+export type AuditCategory =
+  | 'auth'
+  | 'security'
+  | 'pos'
+  | 'services'
+  | 'expenses'
+  | 'settings'
+  | 'operations';
+
+export interface AuditLogItem {
+  id: string;
+  userId?: string | null;
+  userEmail?: string | null;
+  action: string;
+  category: AuditCategory;
+  details?: Record<string, any>;
+  ipAddress?: string;
+  userAgent?: string;
+  createdAt: string;
+}
+
