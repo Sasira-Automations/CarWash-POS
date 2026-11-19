@@ -9,6 +9,7 @@ export interface OwnerUser {
   businessName?: string;
   branchName?: string;
   location?: string;
+  avatarUrl?: string;
 }
 
 interface SignUpParams {
@@ -34,6 +35,9 @@ interface AuthContextType {
   signInWithGoogle: () => Promise<AuthResponse>;
   signUp: (params: SignUpParams) => Promise<AuthResponse>;
   signOut: () => Promise<void>;
+  uploadAvatar: (file: File) => Promise<{ error: string | null; url?: string }>;
+  removeAvatar: () => Promise<{ error: string | null }>;
+  updateProfile: (updates: { fullName?: string; businessName?: string; branchName?: string; location?: string }) => Promise<{ error: string | null }>;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -46,7 +50,8 @@ const formatOwnerUser = (user: User | null): OwnerUser | null => {
     fullName: user.user_metadata?.full_name || user.user_metadata?.name || '',
     businessName: user.user_metadata?.business_name || 'Your Car Wash',
     branchName: user.user_metadata?.branch_name || 'Main Branch',
-    location: user.user_metadata?.location || ''
+    location: user.user_metadata?.location || '',
+    avatarUrl: user.user_metadata?.avatar_url || user.user_metadata?.picture || ''
   };
 };
 
@@ -185,6 +190,168 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const compressImage = async (file: File, maxDim = 400, quality = 0.85): Promise<{ blob: Blob; dataUrl: string }> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          let { width, height } = img;
+          if (width > height) {
+            if (width > maxDim) {
+              height = Math.round((height * maxDim) / width);
+              width = maxDim;
+            }
+          } else {
+            if (height > maxDim) {
+              width = Math.round((width * maxDim) / height);
+              height = maxDim;
+            }
+          }
+          const canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          if (!ctx) {
+            return reject(new Error('Canvas context not available'));
+          }
+          ctx.drawImage(img, 0, 0, width, height);
+          const dataUrl = canvas.toDataURL('image/jpeg', quality);
+          canvas.toBlob(
+            (blob) => {
+              if (blob) {
+                resolve({ blob, dataUrl });
+              } else {
+                reject(new Error('Failed to create image blob'));
+              }
+            },
+            'image/jpeg',
+            quality
+          );
+        };
+        img.onerror = () => reject(new Error('Failed to load image'));
+        img.src = e.target?.result as string;
+      };
+      reader.onerror = () => reject(new Error('Failed to read file'));
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const uploadAvatar = async (file: File): Promise<{ error: string | null; url?: string }> => {
+    if (!user) {
+      return { error: 'No user signed in.' };
+    }
+
+    try {
+      const { blob, dataUrl } = await compressImage(file, 400, 0.85);
+      let finalUrl = dataUrl;
+
+      // Try uploading to Supabase Storage if configured
+      if (isConfigured) {
+        try {
+          const fileExt = 'jpg';
+          const filePath = `${user.id}/${Date.now()}.${fileExt}`;
+          const { error: storageError } = await supabase.storage
+            .from('avatars')
+            .upload(filePath, blob, { contentType: 'image/jpeg', upsert: true });
+
+          if (!storageError) {
+            const { data: publicData } = supabase.storage.from('avatars').getPublicUrl(filePath);
+            if (publicData?.publicUrl) {
+              finalUrl = publicData.publicUrl;
+            }
+          } else {
+            console.warn('Storage upload note (falling back to data URL):', storageError.message);
+          }
+        } catch (stErr) {
+          console.warn('Storage upload failed, using optimized data URL:', stErr);
+        }
+
+        // Update user metadata in Supabase Auth
+        const { data: updatedData, error: updateError } = await supabase.auth.updateUser({
+          data: { avatar_url: finalUrl }
+        });
+
+        if (updateError) {
+          return { error: updateError.message };
+        }
+
+        if (updatedData?.user) {
+          setUser(formatOwnerUser(updatedData.user));
+        } else {
+          setUser((prev) => (prev ? { ...prev, avatarUrl: finalUrl } : null));
+        }
+      } else {
+        // Mock / offline fallback
+        setUser((prev) => (prev ? { ...prev, avatarUrl: finalUrl } : null));
+      }
+
+      return { error: null, url: finalUrl };
+    } catch (err: any) {
+      return { error: err.message || 'Failed to process image.' };
+    }
+  };
+
+  const removeAvatar = async (): Promise<{ error: string | null }> => {
+    try {
+      if (isConfigured) {
+        const { data: updatedData, error } = await supabase.auth.updateUser({
+          data: { avatar_url: '' }
+        });
+        if (error) return { error: error.message };
+        if (updatedData?.user) {
+          setUser(formatOwnerUser(updatedData.user));
+        } else {
+          setUser((prev) => (prev ? { ...prev, avatarUrl: '' } : null));
+        }
+      } else {
+        setUser((prev) => (prev ? { ...prev, avatarUrl: '' } : null));
+      }
+      return { error: null };
+    } catch (err: any) {
+      return { error: err.message || 'Failed to remove photo.' };
+    }
+  };
+
+  const updateProfile = async (updates: {
+    fullName?: string;
+    businessName?: string;
+    branchName?: string;
+    location?: string;
+  }): Promise<{ error: string | null }> => {
+    try {
+      if (isConfigured) {
+        const { data: updatedData, error } = await supabase.auth.updateUser({
+          data: {
+            full_name: updates.fullName,
+            business_name: updates.businessName,
+            branch_name: updates.branchName,
+            location: updates.location
+          }
+        });
+        if (error) return { error: error.message };
+        if (updatedData?.user) {
+          setUser(formatOwnerUser(updatedData.user));
+        }
+      } else {
+        setUser((prev) =>
+          prev
+            ? {
+                ...prev,
+                fullName: updates.fullName ?? prev.fullName,
+                businessName: updates.businessName ?? prev.businessName,
+                branchName: updates.branchName ?? prev.branchName,
+                location: updates.location ?? prev.location
+              }
+            : null
+        );
+      }
+      return { error: null };
+    } catch (err: any) {
+      return { error: err.message || 'Failed to update profile.' };
+    }
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -195,7 +362,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         signIn,
         signInWithGoogle,
         signUp,
-        signOut
+        signOut,
+        uploadAvatar,
+        removeAvatar,
+        updateProfile
       }}
     >
       {children}

@@ -169,18 +169,39 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileOpen, setMobileOpen }) =
               aria-label="Open profile menu"
               aria-expanded={profileMenuOpen}
               title="Profile and account settings"
-              className="flex h-14 w-14 items-center justify-center rounded-full border-2 border-[#b8d3f0] bg-[#eaf3ff] text-[#1b5fad] shadow-[0_4px_12px_rgba(27,95,173,0.16)] transition hover:bg-blue-100 hover:shadow-[0_6px_16px_rgba(27,95,173,0.22)] focus:outline-none focus:ring-4 focus:ring-blue-500/20"
+              className="flex h-14 w-14 items-center justify-center rounded-full border-2 border-[#b8d3f0] bg-[#eaf3ff] text-[#1b5fad] shadow-[0_4px_12px_rgba(27,95,173,0.16)] transition hover:bg-blue-100 hover:shadow-[0_6px_16px_rgba(27,95,173,0.22)] focus:outline-none focus:ring-4 focus:ring-blue-500/20 overflow-hidden"
             >
-              <CircleUserRound className="h-7 w-7" strokeWidth={1.8} />
+              {user?.avatarUrl ? (
+                <img
+                  src={user.avatarUrl}
+                  alt={user.fullName || 'User Profile'}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <CircleUserRound className="h-7 w-7" strokeWidth={1.8} />
+              )}
             </button>
             {profileMenuOpen && (
               <div className="absolute bottom-[calc(100%-8px)] left-3 z-20 w-56 rounded-lg border border-slate-200 bg-white p-2 shadow-[0_12px_30px_rgba(24,50,82,0.18)]">
-                <div className="border-b border-slate-100 px-3 py-2">
-                  <div className="text-xs font-bold text-slate-900 truncate">
-                    {user?.fullName || 'Car Wash Owner'}
-                  </div>
-                  <div className="mt-0.5 text-[10px] text-slate-500 truncate">
-                    {user?.email || 'Owner Account'}
+                <div className="border-b border-slate-100 px-3 py-2 flex items-center gap-2.5">
+                  {user?.avatarUrl ? (
+                    <img
+                      src={user.avatarUrl}
+                      alt=""
+                      className="w-8 h-8 rounded-full object-cover border border-slate-200 shrink-0"
+                    />
+                  ) : (
+                    <div className="w-8 h-8 rounded-full bg-blue-50 border border-blue-200 flex items-center justify-center text-blue-700 font-bold text-xs shrink-0">
+                      {user?.fullName ? user.fullName.charAt(0).toUpperCase() : 'U'}
+                    </div>
+                  )}
+                  <div className="min-w-0 flex-1">
+                    <div className="text-xs font-bold text-slate-900 truncate">
+                      {user?.fullName || 'Car Wash Owner'}
+                    </div>
+                    <div className="mt-0.5 text-[10px] text-slate-500 truncate">
+                      {user?.email || 'Owner Account'}
+                    </div>
                   </div>
                 </div>
                 <button

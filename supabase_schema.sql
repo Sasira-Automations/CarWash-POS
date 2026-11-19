@@ -103,3 +103,41 @@ BEGIN
     END IF;
 END $$;
 
+-- 5. Storage Bucket for User Profile Avatars
+INSERT INTO storage.buckets (id, name, public) 
+VALUES ('avatars', 'avatars', true)
+ON CONFLICT (id) DO UPDATE SET public = true;
+
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_policies 
+        WHERE tablename = 'objects' AND policyname = 'Public avatar access'
+    ) THEN
+        CREATE POLICY "Public avatar access" 
+        ON storage.objects FOR SELECT 
+        TO public 
+        USING (bucket_id = 'avatars');
+    END IF;
+
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_policies 
+        WHERE tablename = 'objects' AND policyname = 'Allow authenticated users to upload avatars'
+    ) THEN
+        CREATE POLICY "Allow authenticated users to upload avatars" 
+        ON storage.objects FOR INSERT 
+        TO public 
+        WITH CHECK (bucket_id = 'avatars');
+    END IF;
+
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_policies 
+        WHERE tablename = 'objects' AND policyname = 'Allow authenticated users to update avatars'
+    ) THEN
+        CREATE POLICY "Allow authenticated users to update avatars" 
+        ON storage.objects FOR UPDATE 
+        TO public 
+        USING (bucket_id = 'avatars');
+    END IF;
+END $$;
+

@@ -89,8 +89,22 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({ onMenuToggle }) => {
 
           {/* Owner Profile Chip */}
           <div className="hidden sm:flex items-center gap-2.5 pl-3 border-l border-slate-200">
-            <div className="w-8 h-8 rounded-xl bg-blue-50 border border-blue-200 flex items-center justify-center text-blue-700 font-bold text-xs shadow-xs">
-              {user?.fullName ? user.fullName.charAt(0).toUpperCase() : <User className="w-4 h-4" />}
+            <div className="w-8 h-8 rounded-xl bg-blue-50 border border-blue-200 flex items-center justify-center text-blue-700 font-bold text-xs shadow-xs overflow-hidden shrink-0">
+              {user?.avatarUrl ? (
+                <img
+                  src={user.avatarUrl}
+                  alt={user.fullName || 'Owner profile'}
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    // Fallback to initials if image link breaks
+                    e.currentTarget.style.display = 'none';
+                  }}
+                />
+              ) : user?.fullName ? (
+                user.fullName.charAt(0).toUpperCase()
+              ) : (
+                <User className="w-4 h-4" />
+              )}
             </div>
             <div className="text-left hidden md:block">
               <div className="text-xs font-bold text-slate-900 leading-tight truncate max-w-[140px]">
