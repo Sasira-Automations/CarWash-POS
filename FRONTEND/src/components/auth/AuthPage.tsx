@@ -13,6 +13,8 @@ import {
   CheckCircle2,
   AlertCircle,
   Loader2,
+  ShieldCheck,
+  X,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
@@ -39,6 +41,8 @@ export const AuthPage: React.FC = () => {
   const [branchName, setBranchName] = useState('');
   const [location, setLocation] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [agreedToPolicy, setAgreedToPolicy] = useState(false);
+  const [showPolicyModal, setShowPolicyModal] = useState(false);
 
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
@@ -123,6 +127,10 @@ export const AuthPage: React.FC = () => {
     }
 
     if (mode === 'signup') {
+      if (!agreedToPolicy) {
+        setErrorMsg('Please check the box to agree to the collection of your details and privacy policy.');
+        return;
+      }
       if (!fullName.trim()) {
         setErrorMsg('Please enter your full name.');
         return;
@@ -185,6 +193,10 @@ export const AuthPage: React.FC = () => {
 
   const handleGoogleSignIn = async () => {
     resetMessages();
+    if (mode === 'signup' && !agreedToPolicy) {
+      setErrorMsg('Please check the agreement box before creating an account with Google.');
+      return;
+    }
     setIsSubmitting(true);
     const result = await signInWithGoogle();
     if (result.error) setErrorMsg(result.error);
@@ -479,6 +491,31 @@ export const AuthPage: React.FC = () => {
                 </div>
               )}
 
+              {/* Agreement Policy Checkbox (Sign Up) */}
+              {mode === 'signup' && (
+                <div className="pt-1 pb-1">
+                  <label className="flex items-start gap-2.5 cursor-pointer select-none group">
+                    <input
+                      type="checkbox"
+                      checked={agreedToPolicy}
+                      onChange={(e) => setAgreedToPolicy(e.target.checked)}
+                      className="mt-0.5 h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500/20 cursor-pointer shrink-0"
+                    />
+                    <span className="text-[11px] text-slate-600 leading-snug">
+                      I agree to the{' '}
+                      <button
+                        type="button"
+                        onClick={() => setShowPolicyModal(true)}
+                        className="font-bold text-blue-600 hover:text-blue-800 underline underline-offset-2"
+                      >
+                        Privacy & Data Agreement Policy
+                      </button>
+                      . By checking this box, I consent to the collection and processing of my personal and car wash business details for account registration and operations.
+                    </span>
+                  </label>
+                </div>
+              )}
+
               {/* Submit Button */}
               <button
                 type="submit"
@@ -510,7 +547,18 @@ export const AuthPage: React.FC = () => {
             </form>
 
             {mode === 'signin' && (
-              <div className="mt-5">
+              <div className="mt-5 space-y-3">
+                <p className="text-[11px] text-center text-slate-400">
+                  By signing in, you agree to our{' '}
+                  <button
+                    type="button"
+                    onClick={() => setShowPolicyModal(true)}
+                    className="text-slate-600 hover:text-blue-600 underline font-medium"
+                  >
+                    Privacy & Data Agreement Policy
+                  </button>
+                  .
+                </p>
                 <div className="relative mb-4 flex items-center justify-center">
                   <span className="absolute inset-x-0 h-px bg-slate-200" />
                   <span className="relative bg-white px-3 text-[11px] text-slate-400">or continue with</span>
@@ -592,6 +640,79 @@ export const AuthPage: React.FC = () => {
         </div>
 
       </div>
+
+      {/* Privacy & Data Collection Policy Modal */}
+      {showPolicyModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in">
+          <div className="relative w-full max-w-lg bg-white rounded-3xl p-6 sm:p-7 shadow-2xl border border-slate-200 max-h-[85vh] flex flex-col">
+            <div className="flex items-center justify-between pb-4 border-b border-slate-100">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-blue-50 border border-blue-200 flex items-center justify-center text-blue-600">
+                  <ShieldCheck className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-slate-900">Privacy & Data Collection Policy</h3>
+                  <p className="text-[11px] text-slate-400">WashFlow User & Data Agreement</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowPolicyModal(false)}
+                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="py-4 space-y-4 text-xs text-slate-600 overflow-y-auto pr-1">
+              <div>
+                <h4 className="font-bold text-slate-800 mb-1">1. Information We Collect</h4>
+                <p className="leading-relaxed">
+                  During registration, WashFlow collects your <strong>Full Name</strong>, <strong>Email Address</strong>, <strong>Car Wash Business Name</strong>, <strong>Branch Name</strong>, and <strong>Physical Location</strong>.
+                </p>
+              </div>
+              <div>
+                <h4 className="font-bold text-slate-800 mb-1">2. Purpose of Collection</h4>
+                <p className="leading-relaxed">
+                  Your information is collected and processed specifically to set up your owner dashboard workspace, customize customer thermal receipts, manage car wash service bays, and associate automated ESP32-CAM vehicle detection data with your branch.
+                </p>
+              </div>
+              <div>
+                <h4 className="font-bold text-slate-800 mb-1">3. Data Security & Confidentiality</h4>
+                <p className="leading-relaxed">
+                  All personal and business data is encrypted in transit and at rest using Supabase authentication infrastructure and Row Level Security (RLS) policies. Your details are never sold to third parties.
+                </p>
+              </div>
+              <div>
+                <h4 className="font-bold text-slate-800 mb-1">4. Consent & User Control</h4>
+                <p className="leading-relaxed">
+                  By checking the agreement box on sign-up, you provide informed consent for WashFlow to store and process this data for your account. You retain full control to edit or update your business profile at any time in System Settings.
+                </p>
+              </div>
+            </div>
+
+            <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setShowPolicyModal(false)}
+                className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl transition-colors"
+              >
+                Close
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setAgreedToPolicy(true);
+                  setShowPolicyModal(false);
+                }}
+                className="px-4 py-2 text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-xs transition-colors"
+              >
+                I Agree & Accept
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
