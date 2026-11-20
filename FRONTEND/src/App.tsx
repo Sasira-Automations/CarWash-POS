@@ -16,7 +16,8 @@ import { SettingsView } from './components/settings/SettingsView';
 import { AuditLogsView } from './components/settings/AuditLogsView';
 import { ExpensesView } from './components/expenses/ExpensesView';
 import { ReceiptModal } from './components/modals/ReceiptModal';
-import { CheckCircle2, Droplets, Loader2 } from 'lucide-react';
+import { SplashScreen } from './components/common/SplashScreen';
+import { CheckCircle2 } from 'lucide-react';
 
 const WashFlowMainApp: React.FC = () => {
   const { activeTab, selectedReceipt, setSelectedReceipt, toastMessage } = useWashFlow();
@@ -74,19 +75,7 @@ const AppContent: React.FC = () => {
   const { user, isLoading, isPasswordRecovery, isMfaPending } = useAuth();
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen bg-[#0b1830] flex flex-col items-center justify-center text-white p-4">
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-12 h-12 rounded-2xl bg-white/10 border border-white/15 flex items-center justify-center text-cyan-300">
-            <Droplets className="w-6 h-6 animate-pulse" />
-          </div>
-          <div className="flex items-center gap-2 text-xs font-bold tracking-wider uppercase text-cyan-200">
-            <Loader2 className="w-4 h-4 animate-spin text-cyan-400" />
-            <span>Loading WashFlow...</span>
-          </div>
-        </div>
-      </div>
-    );
+    return <SplashScreen />;
   }
 
   // Enforce authentication: show AuthPage if unauthenticated, resetting password, or awaiting 2FA verification

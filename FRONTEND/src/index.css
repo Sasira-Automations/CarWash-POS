@@ -140,6 +140,63 @@
   }
 }
 
+/* Splash Screen Animations */
+@keyframes splash-pulse-glow {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.45;
+  }
+  50% {
+    transform: scale(1.15);
+    opacity: 0.75;
+  }
+}
+
+@keyframes splash-shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(250%);
+  }
+}
+
+@keyframes splash-float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+@keyframes splash-ripple {
+  0% {
+    transform: scale(0.9);
+    opacity: 0.7;
+  }
+  100% {
+    transform: scale(1.6);
+    opacity: 0;
+  }
+}
+
+.animate-splash-glow {
+  animation: splash-pulse-glow 4s ease-in-out infinite;
+}
+
+.animate-splash-shimmer {
+  animation: splash-shimmer 2s infinite ease-in-out;
+}
+
+.animate-splash-float {
+  animation: splash-float 3.5s ease-in-out infinite;
+}
+
+.animate-splash-ripple {
+  animation: splash-ripple 2.8s cubic-bezier(0, 0.2, 0.8, 1) infinite;
+}
+
 /* Glassmorphism utility */
 .glass-panel {
   background: rgba(255, 255, 255, 0.85);

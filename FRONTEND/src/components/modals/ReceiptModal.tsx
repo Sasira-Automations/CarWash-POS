@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, Printer, CheckCircle2, Share2, Sparkles } from 'lucide-react';
+import { X, Printer, CheckCircle2, Share2 } from 'lucide-react';
 import { Transaction } from '../../types';
 import { useWashFlow } from '../../context/WashFlowContext';
 
@@ -46,8 +46,8 @@ export const ReceiptModal: React.FC<ReceiptModalProps> = ({ transaction, onClose
           <div className="bg-white border border-slate-200/80 rounded-2xl p-6 shadow-sm font-mono text-xs text-slate-700 space-y-4">
             {/* Header */}
             <div className="text-center pb-3 border-b border-dashed border-slate-300">
-              <div className="flex items-center justify-center gap-1.5 mb-1">
-                <Sparkles className="w-4 h-4 text-blue-600" />
+              <div className="flex items-center justify-center gap-2 mb-1">
+                <img src="/logo.png" alt="Logo" className="h-6 w-auto object-contain" />
                 <span className="font-extrabold text-sm text-slate-900 tracking-tight font-sans">
                   {settings.businessName}
                 </span>

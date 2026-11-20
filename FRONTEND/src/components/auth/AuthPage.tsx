@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Droplets,
   Mail,
   Lock,
   Eye,
@@ -331,9 +330,13 @@ export const AuthPage: React.FC = () => {
           </div>
 
           <div className="relative z-10">
-            <div className="inline-flex items-center gap-2 text-sm font-bold text-white">
-              <Droplets className="h-3.5 w-3.5 text-cyan-300" />
-              WashFlow
+            <div className="inline-flex items-center gap-3">
+              <img
+                src="/logo-white.png"
+                alt="WashFlow Logo"
+                className="h-10 w-auto object-contain"
+              />
+              <span className="text-xl font-extrabold tracking-tight text-white">WashFlow</span>
             </div>
             
             <h1 className="mt-8 max-w-sm text-3xl font-bold leading-tight text-white">

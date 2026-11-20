@@ -314,6 +314,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       resetRateLimit(trimmedEmail);
+      setIsLoading(true);
       setUser({
         id: 'mock-user-1',
         email: trimmedEmail,
@@ -321,6 +322,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         businessName: 'Sparkle Wash',
         branchName: 'Main Branch'
       });
+      setTimeout(() => {
+        setIsLoading(false);
+      }, 950);
       await logAuditEvent({
         action: 'AUTH_SIGN_IN',
         category: 'auth',
@@ -398,8 +402,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       if (data.session) {
+        setIsLoading(true);
         setSession(data.session);
         setUser(formatOwnerUser(data.session.user));
+        setTimeout(() => {
+          setIsLoading(false);
+        }, 950);
       }
 
       await logAuditEvent({
@@ -423,6 +431,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (!isConfigured) {
       // Mock 2FA verification: accept 6 digits
       if (trimmedCode.length === 6) {
+        setIsLoading(true);
         setIsMfaPending(false);
         setUser({
           id: 'mock-user-1',
@@ -430,6 +439,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           fullName: 'Demo Operator',
           businessName: 'Sparkle Wash'
         });
+        setTimeout(() => {
+          setIsLoading(false);
+        }, 950);
         await logAuditEvent({
           action: 'AUTH_2FA_VERIFIED',
           category: 'security',
@@ -461,6 +473,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return { error: error.message };
       }
 
+      setIsLoading(true);
       setIsMfaPending(false);
       setMfaFactorId(null);
 
@@ -470,6 +483,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setSession(sessionData.session);
         setUser(formatOwnerUser(sessionData.session.user));
       }
+      setTimeout(() => {
+        setIsLoading(false);
+      }, 950);
 
       await logAuditEvent({
         action: 'AUTH_2FA_VERIFIED',
@@ -673,8 +689,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       const requiresEmailConfirmation = !data.session;
       if (data.session) {
+        setIsLoading(true);
         setSession(data.session);
         setUser(formatOwnerUser(data.session.user));
+        setTimeout(() => {
+          setIsLoading(false);
+        }, 950);
       }
 
       await logAuditEvent({

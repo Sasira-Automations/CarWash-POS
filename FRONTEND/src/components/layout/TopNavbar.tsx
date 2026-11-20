@@ -40,6 +40,10 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({ onMenuToggle }) => {
             <Menu className="w-5 h-5" />
           </button>
 
+          <div className="lg:hidden flex items-center shrink-0">
+            <img src="/logo.png" alt="WashFlow" className="h-8 w-auto object-contain" />
+          </div>
+
           <div className="flex items-center gap-2 min-w-0 group">
             <div className="w-8 h-8 rounded-xl bg-slate-100 flex items-center justify-center text-slate-600 group-hover:bg-slate-200 transition-colors shrink-0">
               <MapPin className="w-4 h-4" />

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { CarFront, Droplets, Wallet, Settings, LogOut, CircleUserRound, X, FileText } from 'lucide-react';
+import { CarFront, Wallet, Settings, LogOut, CircleUserRound, X, FileText } from 'lucide-react';
 import { useWashFlow } from '../../context/WashFlowContext';
 import { useAuth } from '../../context/AuthContext';
 
@@ -125,12 +125,17 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileOpen, setMobileOpen }) =
         <div className="bg-white rounded-[26px] h-full min-h-0 flex flex-col justify-between overflow-hidden shadow-[12px_0_35px_-8px_rgba(25,93,228,0.2)] relative border border-white/50">
           <div className="flex-1 min-h-0 overflow-y-auto flex flex-col">
             {/* Top Logo with Splash & Tagline + Mobile Close */}
-            <div className="sidebar-logo px-4 flex items-center justify-between text-[#17365f]">
+            <div className="sidebar-logo px-4 pt-3 pb-2 flex items-center justify-between">
               <div className="flex items-center gap-2.5">
-                <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#eaf3ff] text-[#1b5fad]">
-                  <Droplets className="h-5 w-5" />
-                </span>
-                <span className="text-lg font-extrabold tracking-tight">WashFlow</span>
+                <img
+                  src="/logo.png"
+                  alt="WashFlow Logo"
+                  className="h-11 w-auto object-contain transition-transform hover:scale-105"
+                />
+                <div className="flex flex-col">
+                  <span className="text-lg font-extrabold tracking-tight text-[#142d68] leading-tight">WashFlow</span>
+                  <span className="text-[10px] font-bold text-blue-600 uppercase tracking-wider">Sparkle Wash</span>
+                </div>
               </div>
               <button
                 type="button"
