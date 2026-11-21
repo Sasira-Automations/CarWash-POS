@@ -14,9 +14,10 @@ import {
   Banknote,
   CreditCard,
   TrendingUp,
-  Clock
+  Clock,
+  Plus
 } from 'lucide-react';
-import { useWashFlow } from '../../context/WashFlowContext';
+import { useWashFlow, matchesDateRange } from '../../context/WashFlowContext';
 import { VehicleDetection } from '../../types';
 import { getVehicleClassConfig } from '../../lib/vehicleUtils';
 
@@ -26,6 +27,7 @@ export const DashboardView: React.FC = () => {
     transactions,
     setActiveTab,
     setSelectedReceipt,
+    openRecordSaleModal,
     settings,
     stats
   } = useWashFlow();
@@ -101,6 +103,13 @@ export const DashboardView: React.FC = () => {
               <Activity className="h-4 w-4" />
               View vehicle captures
             </button>
+            <button
+              onClick={() => openRecordSaleModal()}
+              className="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-3.5 py-2.5 text-xs font-bold text-white shadow-md shadow-blue-900/40 transition-colors hover:bg-blue-500"
+            >
+              <Plus className="h-4 w-4" />
+              Record sale
+            </button>
           </div>
         </div>
       </section>
@@ -120,7 +129,9 @@ export const DashboardView: React.FC = () => {
               {formatKsh(stats.totalRevenue)}
             </div>
             <div className="flex items-center gap-2 mt-1 sm:mt-2 text-xs">
-              <span className="text-slate-600 text-[10px] sm:text-[11px] truncate">Paid sales today</span>
+              <span className="text-slate-600 text-[10px] sm:text-[11px] truncate">
+                Net paid sales today {stats.refundedAmount > 0 ? `(-${formatKsh(stats.refundedAmount)} refunded)` : ''}
+              </span>
             </div>
           </div>
         </div>
@@ -342,7 +353,7 @@ export const DashboardView: React.FC = () => {
                 const share = stats.totalRevenue > 0 ? Math.round((method.amount / stats.totalRevenue) * 100) : 0;
                 const MethodIcon = method.icon;
                 const txCount = transactions.filter(
-                  (t) => t.paymentMethod === method.label && t.status === 'Completed'
+                  (t) => t.paymentMethod === method.label && t.status === 'Completed' && matchesDateRange(t.timestamp, 'today')
                 ).length;
 
                 return (

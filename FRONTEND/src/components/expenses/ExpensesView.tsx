@@ -21,7 +21,7 @@ const today = () => {
 };
 
 export const ExpensesView: React.FC = () => {
-  const { expenses, addExpense, settings } = useWashFlow();
+  const { expenses, addExpense, settings, stats } = useWashFlow();
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState<ExpenseRecord['category']>('Supplies');
   const [amount, setAmount] = useState('');
@@ -29,6 +29,7 @@ export const ExpensesView: React.FC = () => {
   const [paymentMethod, setPaymentMethod] = useState<ExpenseRecord['paymentMethod']>('Cash');
 
   const totalExpenses = expenses.reduce((sum, expense) => sum + expense.amount, 0);
+  const netCashFlow = stats.totalRevenue - totalExpenses;
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -64,6 +65,39 @@ export const ExpensesView: React.FC = () => {
           </div>
         </div>
       </header>
+
+      {/* Financial Reconciliation Strip */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div className="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-2xs">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+            Today's Net Collected Sales
+          </span>
+          <div className="text-lg sm:text-xl font-extrabold text-blue-700 mt-1">
+            {settings.currency} {stats.totalRevenue.toLocaleString()}
+          </div>
+          <span className="text-[11px] text-slate-400">From {stats.completedSales} paid tickets</span>
+        </div>
+
+        <div className="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-2xs">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+            Total Operational Costs
+          </span>
+          <div className="text-lg sm:text-xl font-extrabold text-amber-700 mt-1">
+            - {settings.currency} {totalExpenses.toLocaleString()}
+          </div>
+          <span className="text-[11px] text-slate-400">{expenses.length} expense entries</span>
+        </div>
+
+        <div className="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-2xs">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+            Net Operating Cash Margin
+          </span>
+          <div className={`text-lg sm:text-xl font-extrabold mt-1 ${netCashFlow >= 0 ? 'text-emerald-700' : 'text-rose-600'}`}>
+            {settings.currency} {netCashFlow.toLocaleString()}
+          </div>
+          <span className="text-[11px] text-slate-400">Sales less direct expenses</span>
+        </div>
+      </div>
 
       <div className="grid grid-cols-1 items-start gap-4 xl:grid-cols-[minmax(280px,0.75fr)_minmax(0,1.5fr)]">
         <form

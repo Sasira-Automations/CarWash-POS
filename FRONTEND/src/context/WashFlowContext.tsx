@@ -8,7 +8,8 @@ import {
   Customer,
   BusinessSettings,
   PaymentMethod,
-  ExpenseRecord
+  ExpenseRecord,
+  VehicleClass
 } from '../types';
 import {
   fetchLiveDetections,
@@ -18,6 +19,79 @@ import {
 } from '../services/vehicleDetectionService';
 import { useAuth } from './AuthContext';
 import { logAuditEvent } from '../services/auditLogService';
+
+export interface TenderReconciliation {
+  amount: number;
+  count: number;
+  share: number;
+  expensesDeducted: number;
+  netTenderBalance: number;
+}
+
+export interface ServiceBreakdownItem {
+  name: string;
+  category: string;
+  revenue: number;
+  count: number;
+  share: number;
+}
+
+export interface HourlyTrafficItem {
+  hour: string;
+  hourNumber: number;
+  trafficCount: number;
+  salesCount: number;
+  revenue: number;
+  percentage: number;
+  isPeak?: boolean;
+}
+
+export interface ReconciliationReport {
+  range: 'today' | 'week' | 'month' | 'all';
+  vehiclesCount: number;
+  completedSales: number;
+  refundedSales: number;
+  cancelledSales: number;
+  conversionRate: number;
+  unbilledVehicles: number;
+  potentialLeakage: number;
+  averageTicket: number;
+  grossRevenue: number;
+  refundedAmount: number;
+  cancelledAmount: number;
+  totalRevenue: number;
+  totalExpenses: number;
+  netOperatingProfit: number;
+  operatingProfitMargin: number;
+  revenueByMethod: Record<PaymentMethod, TenderReconciliation>;
+  expensesByMethod: Record<PaymentMethod, number>;
+  totalCashInDrawer: number;
+  totalMpesaBalance: number;
+  totalCardSettlement: number;
+  isTenderBalanced: boolean;
+  servicesBreakdown: ServiceBreakdownItem[];
+  hourlyTraffic: HourlyTrafficItem[];
+}
+
+export interface NewTransactionInput {
+  vehiclePlate: string;
+  vehicleType: string;
+  customerName?: string;
+  customerPhone?: string;
+  services: {
+    serviceId: string;
+    name: string;
+    price: number;
+    quantity: number;
+  }[];
+  discount?: number;
+  paymentMethod: PaymentMethod;
+  attendantName: string;
+  notes?: string;
+  mpesaRef?: string;
+  detectionId?: string;
+  timestamp?: string;
+}
 
 interface WashFlowContextType {
   // Navigation
@@ -36,8 +110,15 @@ interface WashFlowContextType {
   transactions: Transaction[];
   selectedReceipt: Transaction | null;
   setSelectedReceipt: (tx: Transaction | null) => void;
+  addTransaction: (input: NewTransactionInput) => Transaction;
   refundTransaction: (txId: string) => void;
   cancelTransaction: (txId: string) => void;
+
+  // Quick Sale Modal Trigger
+  isRecordSaleModalOpen: boolean;
+  setIsRecordSaleModalOpen: (open: boolean) => void;
+  salePreFill: { plateNumber?: string; vehicleClass?: VehicleClass | string; detectionId?: string } | undefined;
+  openRecordSaleModal: (preFill?: { plateNumber?: string; vehicleClass?: VehicleClass | string; detectionId?: string }) => void;
 
   // Services
   services: ServiceItem[];
@@ -65,17 +146,66 @@ interface WashFlowContextType {
   toastMessage: string | null;
   showToast: (msg: string) => void;
 
-  // Computed KPIs
+  // Computed KPIs for Today
   stats: {
     vehiclesToday: number;
     totalRevenue: number;
+    grossRevenue: number;
+    refundedAmount: number;
     completedSales: number;
     averageTransaction: number;
     conversionRate: number;
     unbilledVehicles: number;
+    potentialLeakage: number;
+    totalExpenses: number;
+    netOperatingProfit: number;
     revenueByMethod: Record<PaymentMethod, number>;
   };
+
+  // Full Period Reconciliation Generator
+  getReconciliationData: (range: 'today' | 'week' | 'month' | 'all') => ReconciliationReport;
 }
+
+// Helper: safe date parsing
+export const parseSafeDate = (val: string | Date | undefined): Date => {
+  if (!val) return new Date();
+  if (val instanceof Date) return isNaN(val.getTime()) ? new Date() : val;
+  const d = new Date(val);
+  if (!isNaN(d.getTime())) return d;
+  return new Date();
+};
+
+export const isSameCalendarDay = (d1: Date, d2: Date): boolean => {
+  return (
+    d1.getFullYear() === d2.getFullYear() &&
+    d1.getMonth() === d2.getMonth() &&
+    d1.getDate() === d2.getDate()
+  );
+};
+
+export const matchesDateRange = (
+  rawDate: string | Date | undefined,
+  range: 'today' | 'week' | 'month' | 'all'
+): boolean => {
+  if (range === 'all') return true;
+  const d = parseSafeDate(rawDate);
+  const now = new Date();
+  if (range === 'today') {
+    return isSameCalendarDay(d, now);
+  }
+  if (range === 'week') {
+    const msInDay = 86400000;
+    const diffDays = (now.getTime() - d.getTime()) / msInDay;
+    return diffDays >= -0.5 && diffDays <= 7;
+  }
+  if (range === 'month') {
+    return (
+      d.getFullYear() === now.getFullYear() &&
+      d.getMonth() === now.getMonth()
+    );
+  }
+  return true;
+};
 
 const initialServices: ServiceItem[] = [];
 const initialCameras: CameraDevice[] = [];
@@ -104,21 +234,81 @@ export const WashFlowProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const [activeTab, setActiveTab] = useState<ActiveTab>('dashboard');
   const [isSupabaseConnected, setIsSupabaseConnected] = useState<boolean>(false);
   const [detections, setDetections] = useState<VehicleDetection[]>([]);
-  const [transactions, setTransactions] = useState<Transaction[]>(initialTransactions);
-  const [services, setServices] = useState<ServiceItem[]>(initialServices);
+
+  // Persistent State (strictly real data, filtering out any previous demo items)
+  const [transactions, setTransactions] = useState<Transaction[]>(() => {
+    try {
+      const saved = localStorage.getItem('washflow_transactions');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          return parsed.filter((t: any) => !t.id?.startsWith('tx-10') && !t.id?.startsWith('tx-09'));
+        }
+      }
+    } catch (e) {
+      console.warn('Failed to parse saved transactions:', e);
+    }
+    return initialTransactions;
+  });
+
+  const [services, setServices] = useState<ServiceItem[]>(() => {
+    try {
+      const saved = localStorage.getItem('washflow_services');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) return parsed;
+      }
+    } catch (e) {
+      console.warn('Failed to parse saved services:', e);
+    }
+    return initialServices;
+  });
+
   const [cameras, setCameras] = useState<CameraDevice[]>(initialCameras);
   const [customers, setCustomers] = useState<Customer[]>(initialCustomers);
-  const [expenses, setExpenses] = useState<ExpenseRecord[]>([]);
+
+  const [expenses, setExpenses] = useState<ExpenseRecord[]>(() => {
+    try {
+      const saved = localStorage.getItem('washflow_expenses');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          return parsed.filter((e: any) => !e.id?.startsWith('exp-1') && !e.id?.startsWith('exp-2') && !e.id?.startsWith('exp-3'));
+        }
+      }
+    } catch (e) {
+      console.warn('Failed to parse saved expenses:', e);
+    }
+    return [];
+  });
+
   const [settings, setSettings] = useState<BusinessSettings>(() => ({
     ...initialSettings,
     businessName: user?.businessName || initialSettings.businessName,
     branch: user?.branchName || initialSettings.branch,
     location: user?.location || initialSettings.location,
-    email: user?.email || ''
+    email: user?.email || initialSettings.email
   }));
 
   const [selectedReceipt, setSelectedReceipt] = useState<Transaction | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  // Quick Sale Modal State
+  const [isRecordSaleModalOpen, setIsRecordSaleModalOpen] = useState(false);
+  const [salePreFill, setSalePreFill] = useState<{
+    plateNumber?: string;
+    vehicleClass?: VehicleClass | string;
+    detectionId?: string;
+  } | undefined>(undefined);
+
+  const openRecordSaleModal = (preFill?: {
+    plateNumber?: string;
+    vehicleClass?: VehicleClass | string;
+    detectionId?: string;
+  }) => {
+    setSalePreFill(preFill);
+    setIsRecordSaleModalOpen(true);
+  };
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
@@ -127,7 +317,32 @@ export const WashFlowProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }, 3500);
   };
 
-  // Load capture data and listen for new vehicle activity.
+  // Sync to LocalStorage
+  useEffect(() => {
+    try {
+      localStorage.setItem('washflow_transactions', JSON.stringify(transactions));
+    } catch (e) {
+      console.warn('Failed to persist transactions:', e);
+    }
+  }, [transactions]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('washflow_services', JSON.stringify(services));
+    } catch (e) {
+      console.warn('Failed to persist services:', e);
+    }
+  }, [services]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('washflow_expenses', JSON.stringify(expenses));
+    } catch (e) {
+      console.warn('Failed to persist expenses:', e);
+    }
+  }, [expenses]);
+
+  // Load capture data and listen for live vehicle ingress from Supabase
   useEffect(() => {
     let unsubscribe: (() => void) | undefined;
 
@@ -135,21 +350,26 @@ export const WashFlowProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       const rows = await fetchLiveDetections();
       if (rows !== null) {
         setIsSupabaseConnected(true);
-        const mappedDetections: VehicleDetection[] = rows.map((r) => ({
-          id: r.id,
-          entryEventId: r.id,
-          vehicleClass: normalizeVehicleClass(r.vehicle_class),
-          imageUrl: resolveDetectionImage(r.image_path),
-          confidence: 0,
-          timestamp: new Date(r.captured_at).toLocaleString(),
-          cameraSource: 'Camera capture',
-          vehicleType: normalizeVehicleClass(r.vehicle_class),
-          status: 'confirmed',
-          isDuplicate: false,
-          waitingForSale: true
-        }));
+        const mappedDetections: VehicleDetection[] = rows.map((r) => {
+          const vClass = normalizeVehicleClass(r.vehicle_class);
+          const matchedTx = transactions.find((t) => t.vehicleType.toLowerCase() === vClass.toLowerCase());
+          return {
+            id: r.id,
+            entryEventId: r.id,
+            vehicleClass: vClass,
+            imageUrl: resolveDetectionImage(r.image_path),
+            confidence: 0,
+            timestamp: r.captured_at,
+            capturedAt: r.captured_at,
+            cameraSource: 'Camera capture',
+            vehicleType: vClass,
+            status: 'confirmed',
+            isDuplicate: false,
+            waitingForSale: !matchedTx,
+            matchedTransactionId: matchedTx?.receiptNumber
+          };
+        });
         setDetections(mappedDetections);
-
       } else {
         setIsSupabaseConnected(false);
         setDetections([]);
@@ -170,7 +390,8 @@ export const WashFlowProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           vehicleClass: vClass,
           imageUrl,
           confidence: 0,
-          timestamp: new Date(row.captured_at).toLocaleString(),
+          timestamp: row.captured_at,
+          capturedAt: row.captured_at,
           cameraSource: 'Camera capture',
           vehicleType: vClass,
           status: 'confirmed',
@@ -179,10 +400,10 @@ export const WashFlowProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         };
 
         setDetections((prev) => {
-          if (eventType === 'UPDATE') return prev.map((detection) => detection.id === row.id ? newDetection : detection);
-          return [newDetection, ...prev.filter((detection) => detection.id !== row.id)];
+          if (eventType === 'UPDATE') return prev.map((d) => (d.id === row.id ? newDetection : d));
+          return [newDetection, ...prev.filter((d) => d.id !== row.id)];
         });
-        if (eventType === 'INSERT') showToast(`New ${vClass} capture received`);
+        if (eventType === 'INSERT') showToast(`New ${vClass} ingress capture detected`);
       });
     };
 
@@ -213,35 +434,100 @@ export const WashFlowProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       category: 'operations',
       details: { detectionId, newPlate: formatted },
       userEmail: user?.email,
-      userId: user?.id,
+      userId: user?.id
     });
   };
 
+  // Add Transaction / POS Checkout
+  const addTransaction = (input: NewTransactionInput): Transaction => {
+    const subtotal = input.services.reduce((sum, item) => sum + item.price * item.quantity, 0);
+    const discount = Math.max(0, Math.min(subtotal, input.discount || 0));
+    const total = Math.max(0, subtotal - discount);
+
+    const receiptNum = `RCP-${Math.floor(4000 + Math.random() * 5900)}`;
+    const nowIso = input.timestamp || new Date().toISOString();
+
+    const newTx: Transaction = {
+      id: `tx-${Date.now()}`,
+      receiptNumber: receiptNum,
+      vehiclePlate: input.vehiclePlate.toUpperCase().trim(),
+      vehicleType: input.vehicleType,
+      customerName: input.customerName,
+      customerPhone: input.customerPhone,
+      services: input.services,
+      subtotal,
+      discount,
+      total,
+      paymentMethod: input.paymentMethod,
+      status: 'Completed',
+      timestamp: nowIso,
+      attendantName: input.attendantName,
+      notes: input.notes,
+      mpesaRef: input.mpesaRef
+    };
+
+    setTransactions((prev) => [newTx, ...prev]);
+
+    // Update matching detection to mark as billed
+    setDetections((prev) =>
+      prev.map((d) => {
+        const matchesPlate = d.plateNumber && d.plateNumber.toUpperCase() === newTx.vehiclePlate;
+        const matchesId = input.detectionId && d.id === input.detectionId;
+        if (matchesPlate || matchesId) {
+          return {
+            ...d,
+            waitingForSale: false,
+            matchedTransactionId: newTx.receiptNumber
+          };
+        }
+        return d;
+      })
+    );
+
+    showToast(`Payment of ${settings.currency} ${total.toLocaleString()} recorded via ${input.paymentMethod}`);
+    logAuditEvent({
+      action: 'TRANSACTION_RECORDED',
+      category: 'pos',
+      details: {
+        receiptNumber: newTx.receiptNumber,
+        total: newTx.total,
+        paymentMethod: newTx.paymentMethod,
+        vehiclePlate: newTx.vehiclePlate
+      },
+      userEmail: user?.email,
+      userId: user?.id
+    });
+
+    return newTx;
+  };
+
   const refundTransaction = (txId: string) => {
+    const tx = transactions.find((t) => t.id === txId);
     setTransactions((prev) =>
       prev.map((t) => (t.id === txId ? { ...t, status: 'Refunded' } : t))
     );
-    showToast(`Transaction ${txId} marked as Refunded`);
+    showToast(`Transaction ${tx?.receiptNumber || txId} marked as Refunded`);
     logAuditEvent({
       action: 'TRANSACTION_REFUNDED',
       category: 'pos',
-      details: { transactionId: txId },
+      details: { transactionId: txId, receiptNumber: tx?.receiptNumber, amount: tx?.total },
       userEmail: user?.email,
-      userId: user?.id,
+      userId: user?.id
     });
   };
 
   const cancelTransaction = (txId: string) => {
+    const tx = transactions.find((t) => t.id === txId);
     setTransactions((prev) =>
       prev.map((t) => (t.id === txId ? { ...t, status: 'Cancelled' } : t))
     );
-    showToast(`Transaction ${txId} marked as Cancelled`);
+    showToast(`Transaction ${tx?.receiptNumber || txId} marked as Cancelled`);
     logAuditEvent({
       action: 'TRANSACTION_CANCELLED',
       category: 'pos',
-      details: { transactionId: txId },
+      details: { transactionId: txId, receiptNumber: tx?.receiptNumber },
       userEmail: user?.email,
-      userId: user?.id,
+      userId: user?.id
     });
   };
 
@@ -257,7 +543,7 @@ export const WashFlowProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       category: 'services',
       details: { name: srv.name, price: srv.price, category: srv.category },
       userEmail: user?.email,
-      userId: user?.id,
+      userId: user?.id
     });
   };
 
@@ -271,7 +557,7 @@ export const WashFlowProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       category: 'services',
       details: { serviceId: id, updates },
       userEmail: user?.email,
-      userId: user?.id,
+      userId: user?.id
     });
   };
 
@@ -300,7 +586,7 @@ export const WashFlowProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       category: 'expenses',
       details: { description: newRecord.description, amount: newRecord.amount, category: newRecord.category },
       userEmail: user?.email,
-      userId: user?.id,
+      userId: user?.id
     });
   };
 
@@ -320,7 +606,7 @@ export const WashFlowProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       category: 'operations',
       details: { name: newCust.name, phone: newCust.phone, plate: newCust.plateNumber },
       userEmail: user?.email,
-      userId: user?.id,
+      userId: user?.id
     });
   };
 
@@ -332,37 +618,204 @@ export const WashFlowProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       category: 'settings',
       details: newSettings,
       userEmail: user?.email,
-      userId: user?.id,
+      userId: user?.id
     });
   };
 
-  const stats = useMemo(() => {
-    const completedTxList = transactions.filter((t) => t.status === 'Completed');
-    const totalRevenue = completedTxList.reduce((sum, transaction) => sum + transaction.total, 0);
-    const completedSales = completedTxList.length;
-    const averageTransaction = completedSales ? Math.round(totalRevenue / completedSales) : 0;
-    const vehiclesToday = detections.filter((detection) =>
-      new Date(detection.timestamp).toDateString() === new Date().toDateString()
-    ).length;
-    const conversionRate = vehiclesToday ? Math.round((completedSales / vehiclesToday) * 1000) / 10 : 0;
-    const unbilledVehicles = detections.filter((detection) => detection.waitingForSale).length;
+  // Comprehensive Revenue Reconciliation Report Generator
+  const getReconciliationData = (range: 'today' | 'week' | 'month' | 'all'): ReconciliationReport => {
+    // 1. Filter transactions by date range
+    const periodTransactions = transactions.filter((t) => matchesDateRange(t.timestamp, range));
 
-    const revenueByMethod: Record<PaymentMethod, number> = {
-      'M-Pesa': completedTxList.filter((transaction) => transaction.paymentMethod === 'M-Pesa').reduce((sum, transaction) => sum + transaction.total, 0),
-      Cash: completedTxList.filter((transaction) => transaction.paymentMethod === 'Cash').reduce((sum, transaction) => sum + transaction.total, 0),
-      Card: completedTxList.filter((transaction) => transaction.paymentMethod === 'Card').reduce((sum, transaction) => sum + transaction.total, 0)
+    // 2. Separate by status
+    const completedList = periodTransactions.filter((t) => t.status === 'Completed');
+    const refundedList = periodTransactions.filter((t) => t.status === 'Refunded');
+    const cancelledList = periodTransactions.filter((t) => t.status === 'Cancelled');
+
+    // 3. Revenue calculations
+    const totalRevenue = completedList.reduce((sum, t) => sum + t.total, 0); // Net collected revenue
+    const refundedAmount = refundedList.reduce((sum, t) => sum + t.total, 0);
+    const cancelledAmount = cancelledList.reduce((sum, t) => sum + t.total, 0);
+    const grossRevenue = totalRevenue + refundedAmount; // Gross tickets before refund
+    const completedSales = completedList.length;
+    const refundedSales = refundedList.length;
+    const cancelledSales = cancelledList.length;
+
+    const averageTicket = completedSales > 0 ? Math.round(totalRevenue / completedSales) : 0;
+
+    // 4. Ingress / Camera Traffic
+    const periodDetections = detections.filter((d) => matchesDateRange(d.timestamp || d.capturedAt, range));
+    const vehiclesCount = periodDetections.length;
+
+    // Conversion & Funnel
+    const conversionRate = vehiclesCount > 0 ? Math.min(100, Math.round((completedSales / vehiclesCount) * 1000) / 10) : 0;
+    const unbilledVehicles = Math.max(0, vehiclesCount - completedSales);
+    const potentialLeakage = unbilledVehicles * averageTicket;
+
+    // 5. Operating Expenses in Range
+    const periodExpenses = expenses.filter((e) => matchesDateRange(e.date, range));
+    const totalExpenses = periodExpenses.reduce((sum, e) => sum + e.amount, 0);
+    const netOperatingProfit = totalRevenue - totalExpenses;
+    const operatingProfitMargin = totalRevenue > 0 ? Math.round((netOperatingProfit / totalRevenue) * 1000) / 10 : 0;
+
+    // 6. Expenses by Payment Method
+    const expensesByMethod: Record<PaymentMethod, number> = {
+      'M-Pesa': periodExpenses.filter((e) => e.paymentMethod === 'M-Pesa').reduce((sum, e) => sum + e.amount, 0),
+      Cash: periodExpenses.filter((e) => e.paymentMethod === 'Cash').reduce((sum, e) => sum + e.amount, 0),
+      Card: periodExpenses.filter((e) => e.paymentMethod === 'Card').reduce((sum, e) => sum + e.amount, 0)
     };
+
+    // 7. Payment Tender Breakdown & Drawer Reconciliation
+    const mpesaCompleted = completedList.filter((t) => t.paymentMethod === 'M-Pesa');
+    const cashCompleted = completedList.filter((t) => t.paymentMethod === 'Cash');
+    const cardCompleted = completedList.filter((t) => t.paymentMethod === 'Card');
+
+    const mpesaAmount = mpesaCompleted.reduce((sum, t) => sum + t.total, 0);
+    const cashAmount = cashCompleted.reduce((sum, t) => sum + t.total, 0);
+    const cardAmount = cardCompleted.reduce((sum, t) => sum + t.total, 0);
+
+    const revenueByMethod: Record<PaymentMethod, TenderReconciliation> = {
+      'M-Pesa': {
+        amount: mpesaAmount,
+        count: mpesaCompleted.length,
+        share: totalRevenue > 0 ? Math.round((mpesaAmount / totalRevenue) * 1000) / 10 : 0,
+        expensesDeducted: expensesByMethod['M-Pesa'],
+        netTenderBalance: mpesaAmount - expensesByMethod['M-Pesa']
+      },
+      Cash: {
+        amount: cashAmount,
+        count: cashCompleted.length,
+        share: totalRevenue > 0 ? Math.round((cashAmount / totalRevenue) * 1000) / 10 : 0,
+        expensesDeducted: expensesByMethod.Cash,
+        netTenderBalance: cashAmount - expensesByMethod.Cash
+      },
+      Card: {
+        amount: cardAmount,
+        count: cardCompleted.length,
+        share: totalRevenue > 0 ? Math.round((cardAmount / totalRevenue) * 1000) / 10 : 0,
+        expensesDeducted: expensesByMethod.Card,
+        netTenderBalance: cardAmount - expensesByMethod.Card
+      }
+    };
+
+    const isTenderBalanced = Math.abs((mpesaAmount + cashAmount + cardAmount) - totalRevenue) === 0;
+
+    // 8. Dynamic Service Contribution Breakdown
+    const serviceMap = new Map<string, { revenue: number; count: number; category: string }>();
+    completedList.forEach((tx) => {
+      tx.services.forEach((s) => {
+        const existing = serviceMap.get(s.name) || { revenue: 0, count: 0, category: 'Washing' };
+        existing.revenue += s.price * s.quantity;
+        existing.count += s.quantity;
+        serviceMap.set(s.name, existing);
+      });
+    });
+
+    const totalServiceRevenue = Array.from(serviceMap.values()).reduce((sum, item) => sum + item.revenue, 0);
+
+    const servicesBreakdown: ServiceBreakdownItem[] = Array.from(serviceMap.entries())
+      .map(([name, data]) => ({
+        name,
+        category: data.category,
+        revenue: data.revenue,
+        count: data.count,
+        share: totalServiceRevenue > 0 ? Math.round((data.revenue / totalServiceRevenue) * 100) : 0
+      }))
+      .sort((a, b) => b.revenue - a.revenue);
+
+    // 9. Hourly Traffic & Sales Aggregation
+    const hourlyBuckets: Record<number, { traffic: number; sales: number; revenue: number }> = {};
+    for (let h = 8; h <= 17; h++) {
+      hourlyBuckets[h] = { traffic: 0, sales: 0, revenue: 0 };
+    }
+
+    periodDetections.forEach((d) => {
+      const dateObj = parseSafeDate(d.timestamp || d.capturedAt);
+      const hour = dateObj.getHours();
+      if (hourlyBuckets[hour]) {
+        hourlyBuckets[hour].traffic += 1;
+      }
+    });
+
+    completedList.forEach((t) => {
+      const dateObj = parseSafeDate(t.timestamp);
+      const hour = dateObj.getHours();
+      if (hourlyBuckets[hour]) {
+        hourlyBuckets[hour].sales += 1;
+        hourlyBuckets[hour].revenue += t.total;
+      }
+    });
+
+    const maxTrafficHour = Math.max(
+      ...Object.values(hourlyBuckets).map((b) => b.traffic + b.sales),
+      1
+    );
+
+    const hourlyTraffic: HourlyTrafficItem[] = Object.entries(hourlyBuckets).map(([hourStr, data]) => {
+      const h = parseInt(hourStr);
+      const displayHour = h < 12 ? `${String(h).padStart(2, '0')}:00 AM` : h === 12 ? '12:00 PM' : `${String(h - 12).padStart(2, '0')}:00 PM`;
+      const combinedVolume = data.traffic + data.sales;
+      return {
+        hour: displayHour,
+        hourNumber: h,
+        trafficCount: data.traffic,
+        salesCount: data.sales,
+        revenue: data.revenue,
+        percentage: combinedVolume > 0 ? Math.min(100, Math.round((combinedVolume / maxTrafficHour) * 100)) : 0,
+        isPeak: combinedVolume === maxTrafficHour && combinedVolume > 0
+      };
+    });
 
     return {
-      vehiclesToday,
-      totalRevenue,
+      range,
+      vehiclesCount,
       completedSales,
-      averageTransaction,
+      refundedSales,
+      cancelledSales,
       conversionRate,
       unbilledVehicles,
-      revenueByMethod
+      potentialLeakage,
+      averageTicket,
+      grossRevenue,
+      refundedAmount,
+      cancelledAmount,
+      totalRevenue,
+      totalExpenses,
+      netOperatingProfit,
+      operatingProfitMargin,
+      revenueByMethod,
+      expensesByMethod,
+      totalCashInDrawer: revenueByMethod.Cash.netTenderBalance,
+      totalMpesaBalance: revenueByMethod['M-Pesa'].netTenderBalance,
+      totalCardSettlement: revenueByMethod.Card.netTenderBalance,
+      isTenderBalanced,
+      servicesBreakdown,
+      hourlyTraffic
     };
-  }, [detections, transactions]);
+  };
+
+  // Dashboard Stats (Today's reconciled metrics)
+  const stats = useMemo(() => {
+    const todayReport = getReconciliationData('today');
+    return {
+      vehiclesToday: todayReport.vehiclesCount,
+      totalRevenue: todayReport.totalRevenue,
+      grossRevenue: todayReport.grossRevenue,
+      refundedAmount: todayReport.refundedAmount,
+      completedSales: todayReport.completedSales,
+      averageTransaction: todayReport.averageTicket,
+      conversionRate: todayReport.conversionRate,
+      unbilledVehicles: todayReport.unbilledVehicles,
+      potentialLeakage: todayReport.potentialLeakage,
+      totalExpenses: todayReport.totalExpenses,
+      netOperatingProfit: todayReport.netOperatingProfit,
+      revenueByMethod: {
+        'M-Pesa': todayReport.revenueByMethod['M-Pesa'].amount,
+        Cash: todayReport.revenueByMethod.Cash.amount,
+        Card: todayReport.revenueByMethod.Card.amount
+      }
+    };
+  }, [detections, transactions, expenses]);
 
   return (
     <WashFlowContext.Provider
@@ -376,8 +829,13 @@ export const WashFlowProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         transactions,
         selectedReceipt,
         setSelectedReceipt,
+        addTransaction,
         refundTransaction,
         cancelTransaction,
+        isRecordSaleModalOpen,
+        setIsRecordSaleModalOpen,
+        salePreFill,
+        openRecordSaleModal,
         services,
         addService,
         updateService,
@@ -392,7 +850,8 @@ export const WashFlowProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         updateSettings,
         toastMessage,
         showToast,
-        stats
+        stats,
+        getReconciliationData
       }}
     >
       {children}

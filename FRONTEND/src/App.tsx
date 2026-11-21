@@ -16,11 +16,20 @@ import { SettingsView } from './components/settings/SettingsView';
 import { AuditLogsView } from './components/settings/AuditLogsView';
 import { ExpensesView } from './components/expenses/ExpensesView';
 import { ReceiptModal } from './components/modals/ReceiptModal';
+import { RecordSaleModal } from './components/modals/RecordSaleModal';
 import { SplashScreen } from './components/common/SplashScreen';
 import { CheckCircle2 } from 'lucide-react';
 
 const WashFlowMainApp: React.FC = () => {
-  const { activeTab, selectedReceipt, setSelectedReceipt, toastMessage } = useWashFlow();
+  const {
+    activeTab,
+    selectedReceipt,
+    setSelectedReceipt,
+    isRecordSaleModalOpen,
+    setIsRecordSaleModalOpen,
+    salePreFill,
+    toastMessage
+  } = useWashFlow();
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
   return (
@@ -65,6 +74,15 @@ const WashFlowMainApp: React.FC = () => {
         <ReceiptModal
           transaction={selectedReceipt}
           onClose={() => setSelectedReceipt(null)}
+        />
+      )}
+
+      {/* Record Sale / POS Modal */}
+      {isRecordSaleModalOpen && (
+        <RecordSaleModal
+          isOpen={isRecordSaleModalOpen}
+          onClose={() => setIsRecordSaleModalOpen(false)}
+          preFill={salePreFill}
         />
       )}
     </div>

@@ -83,6 +83,7 @@ export interface VehicleDetection {
   imageUrl?: string;
   confidence: number; // 0 - 100
   timestamp: string;
+  capturedAt?: string;
   cameraSource: string;
   vehicleType: string;
   vehicleColor?: string;
